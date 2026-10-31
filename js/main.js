@@ -379,15 +379,18 @@
     giant.classList.add('is-sending');
     setMsg('sending');
     ledDone = false;
+    outcome = null;
     var sent = sendRequest(payload);
-    var ready = new Promise(function (res) { later(function () { giant.classList.add('is-zoom'); }, 600); later(function () { giant.classList.add('is-led'); startLed(); }, 1700); later(res, reduced ? 400 : 6500); });
+    var ready = new Promise(function (res) { later(function () { giant.classList.add('is-zoom'); }, 600); later(function () { giant.classList.add('is-led'); startLed(); }, 1700); later(res, reduced ? 400 : 7000); });
     Promise.all([sent, ready]).then(function (r) {
       if (r[0]) {
         setMsg('done');
+        outcome = 'done'; outS = (performance.now() - t0) / 1000; if (reduced) { outS = 0; redrawStatic(); }
         status.classList.add('is-ok');
         status.textContent = I18N.ok;
       } else {
         setMsg('fail');
+        outcome = 'fail'; outS = (performance.now() - t0) / 1000; if (reduced) { outS = 0; redrawStatic(); }
         status.classList.remove('is-ok');
         status.textContent = I18N.err_send;
         after.hidden = false;
@@ -417,22 +420,47 @@
 
   function buildAds() {
     var pw = Math.min(W * 0.62, 640);
-    adW = Math.floor(pw / 8); adH = Math.floor(adW * 0.34);
+    adW = Math.floor(pw / 4); adH = Math.floor(adW * 0.34);
     var o = document.createElement('canvas'); o.width = adW; o.height = adH;
     var c = o.getContext('2d');
     adBmp = ads.map(function (txt) {
       c.clearRect(0, 0, adW, adH);
       c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle';
-      var fs = adH * 0.62;
-      c.font = '800 ' + fs + 'px Inter, sans-serif';
-      while (c.measureText(txt).width > adW * 0.9 && fs > 6) { fs -= 1; c.font = '800 ' + fs + 'px Inter, sans-serif'; }
+      var fs = adH * 0.7;
+      c.font = '700 ' + fs + 'px Inter, sans-serif';
+      while (c.measureText(txt).width > adW * 0.9 && fs > 6) { fs -= 1; c.font = '700 ' + fs + 'px Inter, sans-serif'; }
       c.fillText(txt, adW / 2, adH / 2 + fs * 0.04);
       var d = c.getImageData(0, 0, adW, adH).data, m = new Uint8Array(adW * adH);
-      for (var i = 0; i < m.length; i++) m[i] = d[i * 4 + 3] > 120 ? 1 : 0;
+      for (var i = 0; i < m.length; i++) m[i] = d[i * 4 + 3] > 110 ? 1 : 0;
       return m;
     });
     adR = new Float32Array(adW * adH);
     for (var i = 0; i < adR.length; i++) adR[i] = Math.random();
+  }
+
+  var outcome = null, outS = 0;
+
+  function hourglass(s) {
+    var m = new Uint8Array(adW * adH), P = 4.2, Tf = 3.4;
+    var q = s % P, u = 1, th = 0;
+    if (q < Tf) u = 1 - q / Tf;
+    else { u = 0; var f = (q - Tf) / (P - Tf); th = Math.PI * (f < .5 ? 2 * f * f : 1 - 2 * (1 - f) * (1 - f)); }
+    var Hh = adH - 4, H2 = Hh / 2, W2 = Math.round(Hh * 0.3), cx = adW / 2, cy = adH / 2, co = Math.cos(th), si = Math.sin(th);
+    for (var y = 0; y < adH; y++) for (var x = 0; x < adW; x++) {
+      var dx = x + 0.5 - cx, dy = y + 0.5 - cy;
+      var lx = dx * co + dy * si, ly = -dx * si + dy * co, ay = Math.abs(ly), ax = Math.abs(lx), on = 0;
+      if (ay > H2 + 0.6 || ax > W2 + 2) continue;
+      var hw = 1 + (W2 - 1) * (ay / H2);
+      if (ay > H2 - 0.6 && ax <= W2 + 1.5) on = 1;
+      else if (Math.abs(ax - hw) < 0.55) on = 1;
+      else if (ax < hw - 0.9) {
+        if (ly < 0 && ly >= -H2 * u + 0.5 && u > 0.02) on = 1;
+        else if (ly > 0 && ly >= H2 * u && ly <= H2 - 1) on = 1;
+        else if (u > 0.02 && u < 0.98 && ax < 0.6 && ly > -0.6 && ly < H2 * u) on = 1;
+      }
+      if (on) m[y * adW + x] = 1;
+    }
+    return m;
   }
 
   function person(x, fy, h, ph, still, lookUp) {
@@ -455,7 +483,7 @@
   }
 
   function scene(s) {
-    var pw = adW * 8, ph = adH * 8, px = (W - pw) / 2, py = H * 0.13, fy = H * 0.84;
+    var pw = adW * 4, ph = adH * 4, px = (W - pw) / 2, py = H * 0.13, fy = H * 0.84;
     var g = ctx.createRadialGradient(W / 2, py + ph, 10, W / 2, py + ph, W * 0.55);
     g.addColorStop(0, 'rgba(251,146,60,.22)'); g.addColorStop(1, 'rgba(251,146,60,0)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -466,12 +494,13 @@
     ctx.fillRect(px + pw * 0.8 - 10, py + ph, 10, fy - py - ph);
     ctx.fillStyle = '#0B1220'; ctx.strokeStyle = '#33425F'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.roundRect(px - 12, py - 12, pw + 24, ph + 24, 8); ctx.fill(); ctx.stroke();
-    var n = adBmp.length, cyc = 3.4, k = Math.floor(s / cyc) % n, f = (s % cyc) / cyc, k2 = (k + 1) % n;
-    var tr = f > 0.82 ? (f - 0.82) / 0.18 : 0;
+    var tr = 0, k = outcome === 'fail' ? 1 : 0;
+    if (outcome) tr = Math.min(1, Math.max(0, (s - outS) / 0.9));
+    var hg = hourglass(s);
     for (var y = 0; y < adH; y++) for (var x = 0; x < adW; x++) {
-      var i = y * adW + x, on = (adR[i] < tr ? adBmp[k2][i] : adBmp[k][i]);
+      var i = y * adW + x, on = outcome && adR[i] < tr ? adBmp[k][i] : hg[i];
       ctx.fillStyle = on ? (adR[i] < 0.12 ? '#FFE3C4' : '#FB923C') : 'rgba(251,146,60,.09)';
-      ctx.beginPath(); ctx.arc(px + x * 8 + 4, py + y * 8 + 4, on ? 2.7 : 1.5, 0, 6.2832); ctx.fill();
+      ctx.beginPath(); ctx.arc(px + x * 4 + 2, py + y * 4 + 2, on ? 1.45 : 0.7, 0, 6.2832); ctx.fill();
     }
     var walkT = 5.2, u = Math.min(s / walkT, 1), e = 1 - Math.pow(1 - u, 2.2);
     var x0 = -W * 0.06, x1 = W * 0.27, pxm = x0 + (x1 - x0) * e, still = u >= 1;
@@ -519,6 +548,8 @@
     raf = window.requestAnimationFrame(frame);
   }
 
+  function redrawStatic() { frame(t0 + 7000); window.cancelAnimationFrame(raf); }
+
   function stopLed() { window.cancelAnimationFrame(raf); }
 
   giant.addEventListener('pointermove', function (e) {
@@ -538,6 +569,7 @@
     timers = [];
     giant.classList.remove('is-sending', 'is-zoom', 'is-led');
     stopLed();
+    outcome = null;
     after.hidden = true;
     status.textContent = '';
     status.classList.remove('is-ok');

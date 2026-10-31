@@ -76,3 +76,10 @@ Aucune photo ni image IA. Le hero est un montage en HTML/CSS avec des messages g
 - Nouvelles accroches FR/NL/EN : bloc « Direction éditoriale » en fin de `tools/i18n.py`.
 - Carte interactive : survol, sélection d'une ville, axes éclairés.
 - Briefs de référence : `docs/brief-brochure.md` et `docs/brief-site.md`.
+
+## Envoi du formulaire (Cloudflare Pages + Resend)
+
+- Fonction: `functions/api/contact.js` (POST /api/contact), envoie un mail à `TO_EMAIL` avec l'adresse du visiteur en reply-to.
+- Variables (Pages > Settings > Variables and Secrets): `RESEND_API_KEY` (secret), `FROM_EMAIL`, `TO_EMAIL`, `ALLOWED_ORIGIN` (facultatif).
+- Test local: copier `.dev.vars.example` en `.dev.vars`, le remplir, puis `wrangler pages dev .`
+- Production: `FROM_EMAIL` sur un domaine validé dans Resend (DNS SPF/DKIM, sans toucher aux MX existants).

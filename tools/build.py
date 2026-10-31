@@ -379,7 +379,7 @@ def blocks(lang, d):
         ) % (scs[n], d['f_t'][n], d['fm_hint'], d['f_t'][n], d['f_p'][n], link)
 
     steps_html = ''
-    for n in range(4):
+    for n in range(len(d['st_t'])):
         steps_html += '<li class="reveal"><span class="steps__n">%d</span><h3>%s</h3><p>%s</p></li>\n' % (n + 1, d['st_t'][n], d['st_p'][n])
 
     faq_html = ''.join('<details><summary>%s</summary><p>%s</p></details>\n' % (d['q'][n], d['a'][n]) for n in range(5))
