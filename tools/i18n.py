@@ -383,3 +383,12 @@ LANGS['en'].update({
  'st_p': ["Preferred location, period and goal of your campaign.", "We suggest the right screens, with a tailored price.", "You create it. We check it displays well on our screens.", "Your ad runs for the agreed period."],
  'quote_h2': "Let's talk about your campaign.",
 })
+
+
+# Carte interactive
+LANGS['fr']['js'].update({'axes': "Axes : ", 'cta_city': "Demander un devis pour {city}", 'hint': "Touchez une ville pour voir ses axes."})
+LANGS['nl']['js'].update({'axes': "Assen: ", 'cta_city': "Offerte aanvragen voor {city}", 'hint': "Tik op een stad om de assen te zien."})
+LANGS['en']['js'].update({'axes': "Roads: ", 'cta_city': "Request a quote for {city}", 'hint': "Tap a city to see its roads."})
+LANGS['fr']['places_lead'] = "Des lieux à fort passage, en intérieur et en extérieur. Choisissez un type de lieu : les écrans s'allument sur la carte. Touchez une ville pour voir ses axes."
+LANGS['nl']['places_lead'] = LANGS['nl']['places_lead'] + " Tik op een stad om de assen te zien."
+LANGS['en']['places_lead'] = LANGS['en']['places_lead'] + " Tap a city to see its roads."

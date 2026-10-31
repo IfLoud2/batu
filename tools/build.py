@@ -48,12 +48,12 @@ def build_map(lang, d):
         for c in cs:
             rx, ry = P(*b.CITIES[c])
             pts.append('%.1f,%.1f' % (rx - x0, ry - y0))
-        road_svg += '<polyline class="road" data-types="axe" data-name="%s" points="%s"/>' % (rn, ' '.join(pts))
+        road_svg += '<polyline class="road" data-types="axe" data-name="%s" data-cities="%s" points="%s"/>' % (rn, ','.join(cs), ' '.join(pts))
         k = (len(pts) - 1) // 2 if rn != 'E40' else 1
         ax, ay = [float(v) for v in pts[k].split(',')]
         bx, by = [float(v) for v in pts[k + 1].split(',')]
         mx, my = (ax + bx) / 2, (ay + by) / 2 + (-20 if rn == 'E42' else 0)
-        road_svg += '<g class="road__tag" data-types="axe" transform="translate(%.1f %.1f)"><rect x="-22" y="-11" width="44" height="22" rx="11"/><text y="5" text-anchor="middle">%s</text></g>' % (mx, my, rn)
+        road_svg += '<g class="road__tag" data-types="axe" data-name="%s" transform="translate(%.1f %.1f)"><rect x="-22" y="-11" width="44" height="22" rx="11"/><text y="5" text-anchor="middle">%s</text></g>' % (rn, mx, my, rn)
     lit = ''
     pins = ''
     for c, t in types.items():
@@ -69,7 +69,7 @@ def build_map(lang, d):
         else:
             label = '<text class="pin__label" x="12" y="4">%s</text>' % name
         minor = ' pin--minor' if c in ('Hasselt', 'Louvain', 'Malines') else ''
-        pins += '<g class="pin%s" data-types="%s" transform="translate(%.1f %.1f)"><circle class="pin__ring" r="12"/><circle class="pin__dot" r="4.6"/>%s</g>' % (minor, t, x, y, label)
+        pins += '<g class="pin%s" data-types="%s" data-city="%s" tabindex="0" role="button" aria-label="%s" transform="translate(%.1f %.1f)"><circle class="pin__hit" r="18"/><circle class="pin__ring" r="12"/><circle class="pin__dot" r="4.6"/>%s</g>' % (minor, t, c, name, x, y, label)
     return (
         '<svg class="map__svg" viewBox="0 0 %.0f %.0f" role="img" aria-label="%s" focusable="false">'
         '<defs>'
@@ -78,11 +78,13 @@ def build_map(lang, d):
         '<pattern id="dotsHot" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="2" fill="#FB923C"/></pattern>'
         '<radialGradient id="halo"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#fff" stop-opacity=".7"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'
         '<mask id="litmask" maskUnits="userSpaceOnUse" x="0" y="0" width="%.0f" height="%.0f">%s</mask>'
+        '<mask id="curmask" maskUnits="userSpaceOnUse" x="0" y="0" width="%.0f" height="%.0f"><circle class="cursor" cx="-200" cy="-200" r="62" fill="url(#halo)"/></mask>'
         '</defs>'
         '<rect width="%.0f" height="%.0f" fill="url(#dotsDim)" clip-path="url(#be)"/>'
-        '<g clip-path="url(#be)"><rect width="%.0f" height="%.0f" fill="url(#dotsHot)" mask="url(#litmask)"/></g>'
+        '<g clip-path="url(#be)"><rect width="%.0f" height="%.0f" fill="url(#dotsHot)" mask="url(#litmask)"/>'
+        '<rect class="cursor-dots" width="%.0f" height="%.0f" fill="url(#dotsHot)" mask="url(#curmask)"/></g>'
         '<path class="map__edge" d="%s"/>%s%s</svg>'
-    ) % (W, H, d['map_aria'], path, W, H, lit, W, H, W, H, path, road_svg, pins)
+    ) % (W, H, d['map_aria'], path, W, H, lit, W, H, W, H, W, H, W, H, path, road_svg, pins)
 
 
 G = 376
@@ -404,7 +406,7 @@ def blocks(lang, d):
         'BASE': base, 'LANG': lang, 'TYPES': types_html, 'TILES': tiles_html, 'FORMATS': fm_html, 'STEPS': steps_html,
         'FAQ': faq_html, 'DOTS_NAV': dots_html, 'PROFIL_OPTS': profil_opts, 'LOC_OPTS': loc_opts, 'PER_OPTS': per_opts, 'QPROG': prog,
         'LANGSW': sw, 'HREFLANG': hreflang, 'CANON': '%s/%s' % (SITE, SLUG[lang]), 'SLIDES': slides(d), 'MAP': build_map(lang, d),
-        'LEGAL_HREF': legal_href, 'I18N_JSON': json.dumps(dict(d['js'], cap_prefix=d['cap_prefix']), ensure_ascii=False).replace('</', '<\\/'),
+        'LEGAL_HREF': legal_href, 'I18N_JSON': json.dumps(dict(d['js'], cap_prefix=d['cap_prefix'], types=d['ty_t']), ensure_ascii=False).replace('</', '<\\/'),
         'INDEX_HREF': os.path.relpath(INDEX_FILES[lang], os.path.dirname(LEGAL_FILES[lang]) or '.'),
     }
 

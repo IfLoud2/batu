@@ -146,9 +146,26 @@
   var pins = Array.prototype.slice.call(document.querySelectorAll('[data-types]'));
   var caption = document.querySelector('.map__cap');
 
+  var mapSvg = document.querySelector('.map__svg');
+  var roads = Array.prototype.slice.call(mapSvg.querySelectorAll('.road'));
+  var tags = Array.prototype.slice.call(mapSvg.querySelectorAll('.road__tag'));
+  var cityPins = Array.prototype.slice.call(mapSvg.querySelectorAll('.pin'));
+  var cursor = mapSvg.querySelector('.cursor');
+  var currentType = typeButtons[0];
+  var picked = null;
+
+  function clearPick() {
+    picked = null;
+    cityPins.forEach(function (p) { p.classList.remove('is-picked'); });
+    roads.forEach(function (r) { r.classList.remove('is-hot'); });
+    tags.forEach(function (t) { t.classList.remove('is-hot'); });
+  }
+
   function selectType(button) {
     var type = button.dataset.type;
     var names = [];
+    currentType = button;
+    clearPick();
     typeButtons.forEach(function (b) {
       var on = b === button;
       b.classList.toggle('is-active', on);
@@ -164,6 +181,61 @@
     });
     caption.textContent = I18N.cap_prefix + names.join(', ') + '.';
   }
+
+  function pickCity(pin) {
+    var city = pin.dataset.city;
+    var label = pin.getAttribute('aria-label');
+    var kinds = pin.dataset.types.split(' ').map(function (t) { return I18N.types[['cc', 'event', 'axe'].indexOf(t)]; });
+    var hot = [];
+    clearPick();
+    picked = pin;
+    pin.classList.add('is-picked');
+    roads.forEach(function (r) {
+      if (r.dataset.cities.split(',').indexOf(city) === -1) return;
+      r.classList.add('is-hot');
+      hot.push(r.dataset.name);
+    });
+    tags.forEach(function (t) { t.classList.toggle('is-hot', hot.indexOf(t.dataset.name) !== -1); });
+    caption.textContent = '';
+    var strong = document.createElement('strong');
+    strong.textContent = label;
+    caption.appendChild(strong);
+    caption.appendChild(document.createTextNode(' · ' + kinds.join(' · ') + (hot.length ? ' · ' + I18N.axes + hot.join(', ') : '') + ' '));
+    var a = document.createElement('a');
+    a.href = '#devis';
+    a.textContent = I18N.cta_city.replace('{city}', label) + ' →';
+    a.addEventListener('click', function () {
+      var z = document.getElementById('f-zone');
+      if (z) z.value = label;
+    });
+    caption.appendChild(a);
+  }
+
+  cityPins.forEach(function (pin) {
+    pin.addEventListener('click', function (e) { e.stopPropagation(); pickCity(pin); });
+    pin.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickCity(pin); }
+    });
+  });
+
+  mapSvg.addEventListener('click', function () { if (picked) selectType(currentType); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && picked) selectType(currentType);
+  });
+
+  function moveCursor(e) {
+    var m = mapSvg.getScreenCTM();
+    if (!m) return;
+    var pt = mapSvg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    pt = pt.matrixTransform(m.inverse());
+    cursor.setAttribute('cx', pt.x.toFixed(1));
+    cursor.setAttribute('cy', pt.y.toFixed(1));
+  }
+  mapSvg.addEventListener('pointermove', moveCursor);
+  mapSvg.addEventListener('pointerdown', moveCursor);
+  mapSvg.addEventListener('pointerleave', function () { cursor.setAttribute('cx', '-200'); cursor.setAttribute('cy', '-200'); });
 
   typeButtons.forEach(function (b) {
     b.addEventListener('click', function () { selectType(b); });

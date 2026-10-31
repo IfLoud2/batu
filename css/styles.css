@@ -341,6 +341,24 @@ h1,h2{text-wrap:balance}
 .todo{border-radius:2px}
 @media (max-width:640px){.tv__stage{border-radius:2px}}
 
+/* Carte interactive */
+.map__svg{touch-action:pan-y}
+.pin{cursor:pointer;opacity:1}
+.pin__hit{fill:transparent}
+.pin__dot{transform-box:fill-box;transform-origin:center;transition:transform .2s,fill .3s,fill-opacity .3s}
+.pin:hover .pin__dot,.pin:focus-visible .pin__dot,.pin.is-picked .pin__dot{fill:var(--led);fill-opacity:1;transform:scale(1.5)}
+.pin:hover .pin__label,.pin:focus-visible .pin__label,.pin.is-picked .pin__label{opacity:1}
+.pin--minor:hover .pin__label,.pin--minor:focus-visible .pin__label,.pin--minor.is-picked .pin__label{display:block}
+.pin:focus{outline:none}
+.pin:focus-visible .pin__ring{opacity:1;fill:none;stroke:#fff;stroke-width:1.5}
+.pin.is-picked .pin__ring{opacity:1;animation:ping 2.2s ease-out infinite}
+.road.is-hot{stroke:var(--led);stroke-opacity:1;stroke-width:3.4;filter:drop-shadow(0 0 5px rgba(251,146,60,.85))}
+.road__tag.is-hot{opacity:1}
+.map__cap{min-height:3em}
+.map__cap strong{color:#fff;font-weight:700}
+.map__cap a{color:#fff;font-weight:500;text-underline-offset:3px;white-space:nowrap}
+.map__cap a:hover{color:var(--sun)}
+
 @media (max-width:1100px){
   .nav ul{gap:18px}
   .nav{gap:20px}
