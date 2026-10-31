@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{meta_title}}</title>
+  <meta name="description" content="{{meta_desc}}">
+  <meta name="theme-color" content="#FFFFFF">
+  <meta property="og:title" content="{{meta_title}}">
+  <meta property="og:description" content="{{og_desc}}">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="{{locale}}">
+  <meta property="og:url" content="{{CANON}}">
+  <link rel="canonical" href="{{CANON}}">
+{{HREFLANG}}  <link rel="icon" href="{{BASE}}assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="{{BASE}}fonts/inter-400.woff" as="font" type="font/woff" crossorigin>
+  <link rel="preload" href="{{BASE}}fonts/inter-display-600.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="{{BASE}}css/styles.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+  <a class="skip" href="#contenu">{{skip}}</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="#top" aria-label="{{brand_aria}}">
+        <img src="{{BASE}}assets/logo-dark.png" alt="B&amp;K" width="93" height="40">
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav" aria-label="{{menu}}">
+        <span></span><span></span>
+      </button>
+      <nav class="nav" id="nav" aria-label="{{nav_aria}}">
+        <ul>
+          <li><a href="#lieux">{{nav_places}}</a></li>
+          <li><a href="#pour-qui">{{nav_who}}</a></li>
+          <li><a href="#formats">{{nav_formats}}</a></li>
+          <li><a href="#fonctionnement">{{nav_how}}</a></li>
+          <li><a href="#faq">{{nav_faq}}</a></li>
+        </ul>
+        <a class="btn btn--sm" href="#devis">{{cta}}</a>
+        <ul class="lang" aria-label="{{lang_aria}}">{{LANGSW}}</ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenu">
+    <section class="hero" id="top">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="kicker">{{kicker}}</p>
+          <h1>{{h1}}</h1>
+          <p class="lead">{{lead}}</p>
+          <div class="actions">
+            <a class="btn" href="#devis">{{cta}}</a>
+            <a class="btn btn--ghost" href="#lieux">{{cta2}}</a>
+          </div>
+        </div>
+
+        <div class="tv" role="group" aria-roledescription="carousel" aria-label="{{tv_aria}}">
+          <div class="tv__stage" aria-live="off">
+{{SLIDES}}
+          </div>
+          <div class="tv__ctrl">
+            <button class="tv__pause" type="button" aria-pressed="false" aria-label="{{pause}}">
+              <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1"/><rect x="9.5" y="2" width="3.5" height="12" rx="1"/></svg>
+              <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5-9-5.5Z"/></svg>
+            </button>
+            <div class="tv__dots">{{DOTS_NAV}}</div>
+          </div>
+          <p class="tv__note">{{tv_note}}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="places" id="lieux" aria-labelledby="t-lieux">
+      <div class="container">
+        <div class="places__head">
+          <p class="kicker kicker--led">{{places_kicker}}</p>
+          <h2 id="t-lieux">{{places_h2}}</h2>
+          <p class="places__lead">{{places_lead}}</p>
+        </div>
+        <div class="places__grid">
+          <div class="types" role="group" aria-label="{{types_aria}}">
+{{TYPES}}          </div>
+          <figure class="map">
+            <span class="map__badge">{{map_badge}}</span>
+            {{MAP}}
+            <p class="map__stats">{{stats_html}}</p>
+            <figcaption class="map__cap" role="status" aria-live="polite"></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pour-qui" aria-labelledby="t-pour-qui">
+      <div class="container">
+        <div class="section__head">
+          <p class="kicker">{{who_kicker}}</p>
+          <h2 id="t-pour-qui">{{who_h2}}</h2>
+          <p class="section__lead">{{who_lead}}</p>
+        </div>
+        <ul class="tiles">
+{{TILES}}        </ul>
+      </div>
+    </section>
+
+    <section class="section section--surface" id="formats" aria-labelledby="t-formats">
+      <div class="container">
+        <div class="section__head">
+          <p class="kicker">{{fm_kicker}}</p>
+          <h2 id="t-formats">{{fm_h2}}</h2>
+          <p class="section__lead">{{fm_lead}}</p>
+        </div>
+        <ul class="formats">
+{{FORMATS}}        </ul>
+        <p class="formats__note">{{fm_note}}</p>
+      </div>
+    </section>
+
+    <section class="section" id="fonctionnement" aria-labelledby="t-fonctionnement">
+      <div class="container">
+        <div class="section__head">
+          <p class="kicker">{{how_kicker}}</p>
+          <h2 id="t-fonctionnement">{{how_h2}}</h2>
+        </div>
+        <ol class="steps">
+{{STEPS}}        </ol>
+      </div>
+    </section>
+
+    <section class="section section--surface" id="faq" aria-labelledby="t-faq">
+      <div class="container container--narrow">
+        <div class="section__head">
+          <p class="kicker">{{faq_kicker}}</p>
+          <h2 id="t-faq">{{faq_h2}}</h2>
+        </div>
+        <div class="faq">
+{{FAQ}}        </div>
+      </div>
+    </section>
+
+    <section class="section" id="devis" aria-labelledby="t-devis">
+      <div class="container container--narrow">
+        <div class="section__head">
+          <p class="kicker">{{quote_kicker}}</p>
+          <h2 id="t-devis">{{quote_h2}}</h2>
+          <p class="section__lead">{{quote_lead}}</p>
+        </div>
+        <form class="form" id="contact-form" novalidate>
+          <ol class="qprog" aria-label="{{qs_prog}}">{{QPROG}}</ol>
+
+          <fieldset class="qstep" data-step="1">
+            <legend class="qstep__h" tabindex="-1">{{qs_h_0}}</legend>
+            <div class="field">
+              <label for="f-profil">{{l_profil}}</label>
+              <select id="f-profil" name="profil">{{PROFIL_OPTS}}</select>
+            </div>
+            <div class="field" role="radiogroup" aria-labelledby="l-lieu">
+              <span class="label" id="l-lieu">{{l_place}}</span>
+              <div class="chips">{{LOC_OPTS}}</div>
+            </div>
+            <div class="field" role="radiogroup" aria-labelledby="l-periode">
+              <span class="label" id="l-periode">{{l_period}}</span>
+              <div class="chips">{{PER_OPTS}}</div>
+            </div>
+          </fieldset>
+
+          <fieldset class="qstep" data-step="2">
+            <legend class="qstep__h" tabindex="-1">{{qs_h_1}}</legend>
+            <div class="form__row">
+              <div class="field">
+                <label for="f-zone">{{l_zone}}</label>
+                <input id="f-zone" name="zone" type="text" autocomplete="address-level2">
+              </div>
+              <div class="field">
+                <label for="f-debut">{{l_start}}</label>
+                <input id="f-debut" name="debut" type="month">
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-message">{{l_msg}} <span class="opt">{{l_opt}}</span></label>
+              <textarea id="f-message" name="message" rows="4"></textarea>
+            </div>
+          </fieldset>
+
+          <fieldset class="qstep" data-step="3">
+            <legend class="qstep__h" tabindex="-1">{{qs_h_2}}</legend>
+            <div class="form__row">
+              <div class="field">
+                <label for="f-nom">{{l_name}} <span aria-hidden="true">*</span></label>
+                <input id="f-nom" name="nom" type="text" autocomplete="name" required>
+              </div>
+              <div class="field">
+                <label for="f-email">{{l_email}} <span aria-hidden="true">*</span></label>
+                <input id="f-email" name="email" type="email" autocomplete="email" required>
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-entreprise">{{l_company}}</label>
+              <input id="f-entreprise" name="entreprise" type="text" autocomplete="organization">
+            </div>
+            <div class="recap" aria-live="polite">
+              <p class="recap__h">{{recap}}</p>
+              <dl class="recap__list"></dl>
+            </div>
+          </fieldset>
+
+          <div class="form__foot">
+            <button class="btn btn--ghost qback" type="button" hidden>{{back}}</button>
+            <button class="btn qnext" type="button" hidden>{{next}}</button>
+            <button class="btn qsend" type="submit">{{send}}</button>
+            <p class="form__status" role="status" aria-live="polite"></p>
+          </div>
+          <p class="form__legal">{{form_legal}}</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <img src="{{BASE}}assets/logo-dark.png" alt="B&amp;K" width="70" height="30">
+      <p>{{copyright}}</p>
+      <p><a href="mailto:contact@bkconsult.be">contact@bkconsult.be</a></p>
+      <p><a href="{{LEGAL_HREF}}">{{legal_label}}</a></p>
+    </div>
+  </footer>
+
+  <script type="application/json" id="i18n">{{I18N_JSON}}</script>
+  <script src="{{BASE}}js/main.js" defer></script>
+</body>
+</html>
