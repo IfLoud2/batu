@@ -258,14 +258,15 @@
   });
 
   var status = form.querySelector('.form__status');
-  var steps = Array.prototype.slice.call(form.querySelectorAll('.qstep'));
+  var giant = document.getElementById('giant');
+  var steps = Array.prototype.slice.call(form.querySelectorAll('.qpanel'));
   var prog = Array.prototype.slice.call(form.querySelectorAll('.qprog li'));
-  var btnBack = form.querySelector('.qback');
-  var btnNext = form.querySelector('.qnext');
-  var btnSend = form.querySelector('.qsend');
+  var after = form.querySelector('.giant__after');
+  var mailLink = form.querySelector('.giant__mail');
   var recapList = form.querySelector('.recap__list');
   var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   var step = 0;
+  var timers = [];
 
   function val(name) {
     var f = form.elements[name];
@@ -293,28 +294,31 @@
 
   function goTo(n, focus) {
     step = Math.max(0, Math.min(steps.length - 1, n));
-    steps.forEach(function (s, k) { s.hidden = k !== step; });
+    steps.forEach(function (s, k) {
+      s.classList.toggle('is-docked', k <= step);
+      s.classList.toggle('is-current', k === step);
+      if (k > step) {
+        s.setAttribute('inert', '');
+        s.setAttribute('aria-hidden', 'true');
+      } else {
+        s.removeAttribute('inert');
+        s.removeAttribute('aria-hidden');
+      }
+    });
     prog.forEach(function (li, k) {
       if (k === step) li.setAttribute('aria-current', 'step');
       else li.removeAttribute('aria-current');
       li.classList.toggle('is-done', k < step);
     });
-    btnBack.hidden = step === 0;
-    btnNext.hidden = step === steps.length - 1;
-    btnSend.hidden = step !== steps.length - 1;
     status.textContent = '';
     if (step === steps.length - 1) recap();
-    if (focus !== false) steps[step].querySelector('.qstep__h').focus({ preventScroll: false });
+    if (focus !== false) {
+      steps[step].querySelector('.qstep__h').focus({ preventScroll: true });
+      if (window.innerWidth <= 900) steps[step].scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
+    }
   }
 
   if (document.documentElement.classList.contains('js')) goTo(0, false);
-  else {
-    btnBack.hidden = true;
-    btnNext.hidden = true;
-  }
-
-  btnNext.addEventListener('click', function () { goTo(step + 1); });
-  btnBack.addEventListener('click', function () { goTo(step - 1); });
 
   function fail(field, message) {
     field.setAttribute('aria-invalid', 'true');
@@ -323,44 +327,235 @@
     field.focus();
   }
 
-  form.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && step < steps.length - 1 && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') {
-      e.preventDefault();
-      goTo(step + 1);
-    }
-  });
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    if (step < steps.length - 1) return goTo(step + 1);
+  function validateContact() {
     var nom = form.elements.nom;
     var email = form.elements.email;
     nom.removeAttribute('aria-invalid');
     email.removeAttribute('aria-invalid');
     status.textContent = '';
+    var bad = !nom.value.trim() ? [nom, I18N.err_name] : !emailRe.test(email.value.trim()) ? [email, I18N.err_email] : null;
+    if (!bad) return true;
+    if (step !== 2) goTo(2, false);
+    fail(bad[0], bad[1]);
+    return false;
+  }
 
-    if (!nom.value.trim()) return fail(nom, I18N.err_name);
-    if (!emailRe.test(email.value.trim())) return fail(email, I18N.err_email);
+  function next() {
+    if (step === 2 && !validateContact()) return;
+    goTo(step + 1);
+  }
 
-    var lines = [
-      I18N.name + ': ' + nom.value.trim(),
-      I18N.email + ': ' + email.value.trim(),
-      I18N.company + ': ' + (val('entreprise') || '-'),
-      I18N.profil + ': ' + (val('profil') || I18N.tbd2),
-      I18N.place + ': ' + (val('lieu') || I18N.tbd),
-      I18N.period + ': ' + (val('periode') || I18N.tbd),
-      I18N.zone + ': ' + (val('zone') || '-'),
-      I18N.start + ': ' + (val('debut') || '-'),
-      '',
-      val('message')
-    ];
+  form.addEventListener('click', function (e) {
+    var b = e.target.closest('.qnext, .qback');
+    if (!b) return;
+    if (b.classList.contains('qnext')) next();
+    else goTo(step - 1);
+  });
 
-    var href = 'mailto:contact@bkconsult.be'
-      + '?subject=' + encodeURIComponent(I18N.subject + nom.value.trim())
-      + '&body=' + encodeURIComponent(lines.join('\n'));
+  form.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && step < steps.length - 1 && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') {
+      e.preventDefault();
+      next();
+    }
+  });
 
-    status.classList.add('is-ok');
-    status.textContent = I18N.ok;
-    window.location.href = href;
+  function later(fn, ms) { timers.push(window.setTimeout(fn, reduced ? Math.min(ms, 300) : ms)); }
+
+  var msgEl = form.querySelector('.giant__msg');
+  var ledDone = false;
+
+  function setMsg(k) { msgEl.textContent = msgEl.getAttribute('data-' + k); }
+
+  function sendRequest(payload) {
+    var ctl = new AbortController();
+    var to = window.setTimeout(function () { ctl.abort(); }, 12000);
+    return fetch('/api/contact', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload), signal: ctl.signal })
+      .then(function (r) { window.clearTimeout(to); return r.ok; })
+      .catch(function () { window.clearTimeout(to); return false; });
+  }
+
+  function finale(payload) {
+    steps.forEach(function (s) { s.setAttribute('inert', ''); });
+    giant.classList.add('is-sending');
+    setMsg('sending');
+    ledDone = false;
+    var sent = sendRequest(payload);
+    var ready = new Promise(function (res) { later(function () { giant.classList.add('is-zoom'); }, 600); later(function () { giant.classList.add('is-led'); startLed(); }, 1700); later(res, reduced ? 400 : 6500); });
+    Promise.all([sent, ready]).then(function (r) {
+      if (r[0]) {
+        setMsg('done');
+        status.classList.add('is-ok');
+        status.textContent = I18N.ok;
+      } else {
+        setMsg('fail');
+        status.classList.remove('is-ok');
+        status.textContent = I18N.err_send;
+        after.hidden = false;
+        mailLink.href = 'mailto:contact@bkconsult.be?subject=' + encodeURIComponent(I18N.subject + payload.nom);
+      }
+    });
+  }
+
+  var ledEl = form.querySelector('.giant__led');
+  var cv = form.querySelector('.giant__canvas');
+  var ctx = cv.getContext('2d');
+  var ads = (cv.getAttribute('data-ads') || '').split('|');
+  var adBmp = [], adW = 0, adH = 0, adR = null, W = 0, H = 0;
+  var CELL = 16, cols = 0, rows = 0, heat = null, raf = 0, t0 = 0, last = null, dpr = 1;
+
+  function sizeCanvas() {
+    var r = ledEl.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(r.width * dpr);
+    cv.height = Math.round(r.height * dpr);
+    cols = Math.ceil(r.width / CELL);
+    rows = Math.ceil(r.height / CELL);
+    heat = new Float32Array(cols * rows);
+    W = r.width; H = r.height;
+    buildAds();
+  }
+
+  function buildAds() {
+    var pw = Math.min(W * 0.62, 640);
+    adW = Math.floor(pw / 8); adH = Math.floor(adW * 0.34);
+    var o = document.createElement('canvas'); o.width = adW; o.height = adH;
+    var c = o.getContext('2d');
+    adBmp = ads.map(function (txt) {
+      c.clearRect(0, 0, adW, adH);
+      c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      var fs = adH * 0.62;
+      c.font = '800 ' + fs + 'px Inter, sans-serif';
+      while (c.measureText(txt).width > adW * 0.9 && fs > 6) { fs -= 1; c.font = '800 ' + fs + 'px Inter, sans-serif'; }
+      c.fillText(txt, adW / 2, adH / 2 + fs * 0.04);
+      var d = c.getImageData(0, 0, adW, adH).data, m = new Uint8Array(adW * adH);
+      for (var i = 0; i < m.length; i++) m[i] = d[i * 4 + 3] > 120 ? 1 : 0;
+      return m;
+    });
+    adR = new Float32Array(adW * adH);
+    for (var i = 0; i < adR.length; i++) adR[i] = Math.random();
+  }
+
+  function person(x, fy, h, ph, still, lookUp) {
+    var s = h / 100, sw = still ? Math.sin(ph * 0.4) * 0.03 : 0;
+    var hipY = fy - 48 * s - (still ? 0 : Math.abs(Math.sin(ph)) * 2.2 * s);
+    var shY = hipY - 34 * s, hd = shY - 11 * s;
+    ctx.strokeStyle = '#E7EBF3'; ctx.fillStyle = '#E7EBF3'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    function limb(x0, y0, a1, l1, a2, l2, w) {
+      var kx = x0 + Math.sin(a1) * l1, ky = y0 + Math.cos(a1) * l1;
+      ctx.lineWidth = w * s; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(kx, ky);
+      ctx.lineTo(kx + Math.sin(a2) * l2, ky + Math.cos(a2) * l2); ctx.stroke();
+    }
+    var sA = still ? 0.1 : Math.sin(ph), sB = still ? -0.1 : Math.sin(ph + Math.PI);
+    limb(x, hipY, sA * 0.55, 24 * s, sA * 0.55 - Math.max(0, -Math.cos(ph)) * 0.5 * (still ? 0 : 1), 24 * s, 7);
+    limb(x, hipY, sB * 0.55, 24 * s, sB * 0.55 - Math.max(0, -Math.cos(ph + Math.PI)) * 0.5 * (still ? 0 : 1), 24 * s, 7);
+    ctx.lineWidth = 11 * s; ctx.beginPath(); ctx.moveTo(x, hipY); ctx.lineTo(x + sw * 30 * s, shY); ctx.stroke();
+    limb(x + sw * 30 * s, shY + 2 * s, sB * 0.5, 16 * s, sB * 0.5 + 0.4, 15 * s, 5);
+    limb(x + sw * 30 * s, shY + 2 * s, sA * 0.5, 16 * s, sA * 0.5 + 0.4, 15 * s, 5);
+    ctx.beginPath(); ctx.arc(x + (lookUp ? 2.5 * s : 0), hd - (lookUp ? 1.5 * s : 0), 8.5 * s, 0, 6.2832); ctx.fill();
+  }
+
+  function scene(s) {
+    var pw = adW * 8, ph = adH * 8, px = (W - pw) / 2, py = H * 0.13, fy = H * 0.84;
+    var g = ctx.createRadialGradient(W / 2, py + ph, 10, W / 2, py + ph, W * 0.55);
+    g.addColorStop(0, 'rgba(251,146,60,.22)'); g.addColorStop(1, 'rgba(251,146,60,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#10192b'; ctx.fillRect(0, fy, W, H - fy);
+    ctx.fillStyle = 'rgba(251,146,60,.25)'; ctx.fillRect(0, fy, W, 1.5);
+    ctx.fillStyle = '#1B2640';
+    ctx.fillRect(px + pw * 0.2, py + ph, 10, fy - py - ph);
+    ctx.fillRect(px + pw * 0.8 - 10, py + ph, 10, fy - py - ph);
+    ctx.fillStyle = '#0B1220'; ctx.strokeStyle = '#33425F'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.roundRect(px - 12, py - 12, pw + 24, ph + 24, 8); ctx.fill(); ctx.stroke();
+    var n = adBmp.length, cyc = 3.4, k = Math.floor(s / cyc) % n, f = (s % cyc) / cyc, k2 = (k + 1) % n;
+    var tr = f > 0.82 ? (f - 0.82) / 0.18 : 0;
+    for (var y = 0; y < adH; y++) for (var x = 0; x < adW; x++) {
+      var i = y * adW + x, on = (adR[i] < tr ? adBmp[k2][i] : adBmp[k][i]);
+      ctx.fillStyle = on ? (adR[i] < 0.12 ? '#FFE3C4' : '#FB923C') : 'rgba(251,146,60,.09)';
+      ctx.beginPath(); ctx.arc(px + x * 8 + 4, py + y * 8 + 4, on ? 2.7 : 1.5, 0, 6.2832); ctx.fill();
+    }
+    var walkT = 5.2, u = Math.min(s / walkT, 1), e = 1 - Math.pow(1 - u, 2.2);
+    var x0 = -W * 0.06, x1 = W * 0.27, pxm = x0 + (x1 - x0) * e, still = u >= 1;
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(pxm, fy + 4, H * 0.08, 5, 0, 0, 6.2832); ctx.fill();
+    person(pxm, fy, H * 0.22, s * 7.5, still, still);
+  }
+
+
+  function light(cx, cy, rad, amt) {
+    var x0 = Math.max(0, Math.floor(cx - rad)), x1 = Math.min(cols - 1, Math.ceil(cx + rad));
+    var y0 = Math.max(0, Math.floor(cy - rad)), y1 = Math.min(rows - 1, Math.ceil(cy + rad));
+    for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) {
+      var d = Math.hypot(x - cx, y - cy);
+      if (d <= rad) {
+        var i = y * cols + x;
+        heat[i] = Math.max(heat[i], amt * (1 - d / (rad + 0.5)));
+      }
+    }
+  }
+
+  function frame(now) {
+    var s = Math.max(0, (now - t0) / 1000);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    scene(s);
+    for (var y = 0; y < rows; y++) for (var x = 0; x < cols; x++) {
+      var i = y * cols + x, v = heat[i];
+      var a = 0.05 + v * 0.9;
+      var g = Math.round(146 + v * 90), bl = Math.round(60 + v * 120);
+      ctx.fillStyle = 'rgba(251,' + g + ',' + bl + ',' + a.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(x * CELL + CELL / 2, y * CELL + CELL / 2, 1.5 + v * 2.6, 0, 6.2832);
+      ctx.fill();
+      heat[i] = v > 0.004 ? v * 0.945 : 0;
+    }
+    raf = window.requestAnimationFrame(frame);
+  }
+
+  function startLed() {
+    sizeCanvas();
+    t0 = performance.now();
+    last = null;
+    window.cancelAnimationFrame(raf);
+    if (reduced) { frame(t0 + 7000); window.cancelAnimationFrame(raf); return; }
+    raf = window.requestAnimationFrame(frame);
+  }
+
+  function stopLed() { window.cancelAnimationFrame(raf); }
+
+  giant.addEventListener('pointermove', function (e) {
+    if (!giant.classList.contains('is-led') || !heat || reduced) return;
+    var r = ledEl.getBoundingClientRect();
+    var p = { x: (e.clientX - r.left) / CELL, y: (e.clientY - r.top) / CELL };
+    var from = last || p;
+    var n = Math.max(1, Math.ceil(Math.hypot(p.x - from.x, p.y - from.y) / 0.6));
+    for (var k = 1; k <= n; k++) light(from.x + (p.x - from.x) * k / n, from.y + (p.y - from.y) * k / n, 2.6, 1);
+    last = p;
+  });
+  giant.addEventListener('pointerleave', function () { last = null; });
+  window.addEventListener('resize', function () { if (giant.classList.contains('is-led')) sizeCanvas(); });
+
+  form.querySelector('.giant__again').addEventListener('click', function () {
+    timers.forEach(window.clearTimeout);
+    timers = [];
+    giant.classList.remove('is-sending', 'is-zoom', 'is-led');
+    stopLed();
+    after.hidden = true;
+    status.textContent = '';
+    status.classList.remove('is-ok');
+    goTo(steps.length - 1, true);
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (giant.classList.contains('is-sending')) return;
+    if (step < steps.length - 1) return next();
+    if (!validateContact()) return;
+    var nom = form.elements.nom;
+    var email = form.elements.email;
+
+    finale({
+      nom: nom.value.trim(), email: email.value.trim(), entreprise: val('entreprise'),
+      profil: val('profil'), lieu: val('lieu'), periode: val('periode'), zone: val('zone'),
+      debut: val('debut'), message: val('message'), website: val('website'), lang: document.documentElement.lang
+    });
   });
 })();

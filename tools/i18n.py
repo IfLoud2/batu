@@ -392,3 +392,26 @@ LANGS['en']['js'].update({'axes': "Roads: ", 'cta_city': "Request a quote for {c
 LANGS['fr']['places_lead'] = "Des lieux à fort passage, en intérieur et en extérieur. Choisissez un type de lieu : les écrans s'allument sur la carte. Touchez une ville pour voir ses axes."
 LANGS['nl']['places_lead'] = LANGS['nl']['places_lead'] + " Tik op een stad om de assen te zien."
 LANGS['en']['places_lead'] = LANGS['en']['places_lead'] + " Tap a city to see its roads."
+
+
+# Devis en 4 étapes
+LANGS['fr'].update({'qs_labels': ["Votre campagne", "Vos précisions", "Vos coordonnées", "Envoi"], 'qs_h': ["Quel est votre besoin ?", "Où et quand ?", "Comment vous joindre ?", "Vérifiez et envoyez"], 'qscreen_done': "Votre pub ici."})
+LANGS['nl'].update({'qs_labels': ["Uw campagne", "Uw details", "Uw gegevens", "Verzenden"], 'qs_h': ["Wat heeft u nodig?", "Waar en wanneer?", "Hoe bereiken we u?", "Controleer en verstuur"], 'qscreen_done': "Uw reclame hier."})
+LANGS['en'].update({'qs_labels': ["Your campaign", "Your details", "Your contact", "Send"], 'qs_h': ["What do you need?", "Where and when?", "How can we reach you?", "Check and send"], 'qscreen_done': "Your ad here."})
+LANGS['fr']['js']['step'] = "Étape {n} sur 4"
+LANGS['nl']['js']['step'] = "Stap {n} van 4"
+LANGS['en']['js']['step'] = "Step {n} of 4"
+
+LANGS['fr'].update({'qscreen_done': "Votre demande est prête.", 'again': "Modifier ma demande", 'open_mail': "Ouvrir ma messagerie"})
+LANGS['nl'].update({'qscreen_done': "Uw aanvraag is klaar.", 'again': "Mijn aanvraag aanpassen", 'open_mail': "Mijn e-mailprogramma openen"})
+LANGS['en'].update({'qscreen_done': "Your request is ready.", 'again': "Edit my request", 'open_mail': "Open my e-mail app"})
+
+LANGS['fr'].update({'qscreen_done': "Votre demande est envoyée.", 'qscreen_sending': "Envoi de votre demande…", 'qscreen_fail': "L'envoi n'a pas abouti.", 'ad1': "Votre pub ici", 'ad3': "Parlons-en", 'again': "Réessayer", 'open_mail': "Nous écrire par e-mail",
+  'form_legal': "Vos informations servent uniquement à répondre à votre demande. Voir les <a href='{legal_href}'>mentions légales</a>."})
+LANGS['nl'].update({'qscreen_done': "Uw aanvraag is verzonden.", 'qscreen_sending': "Uw aanvraag wordt verzonden…", 'qscreen_fail': "Verzenden is niet gelukt.", 'ad1': "Uw reclame hier", 'ad3': "Laten we praten", 'again': "Opnieuw proberen", 'open_mail': "Mail ons",
+  'form_legal': "Uw gegevens worden enkel gebruikt om op uw aanvraag te antwoorden. Zie de <a href='{legal_href}'>wettelijke vermeldingen</a>."})
+LANGS['en'].update({'qscreen_done': "Your request has been sent.", 'qscreen_sending': "Sending your request…", 'qscreen_fail': "Sending failed.", 'ad1': "Your ad here", 'ad3': "Let's talk", 'again': "Try again", 'open_mail': "E-mail us",
+  'form_legal': "Your details are used only to reply to your request. See the <a href='{legal_href}'>legal notice</a>."})
+LANGS['fr']['js'].update({'ok': "Votre demande a bien été envoyée.", 'err_send': "L'envoi n'a pas abouti. Réessayez ou écrivez-nous par e-mail."})
+LANGS['nl']['js'].update({'ok': "Uw aanvraag is verzonden.", 'err_send': "Verzenden is niet gelukt. Probeer opnieuw of mail ons."})
+LANGS['en']['js'].update({'ok': "Your request has been sent.", 'err_send': "Sending failed. Please try again or e-mail us."})

@@ -70,10 +70,9 @@ Aucune photo ni image IA. Le hero est un montage en HTML/CSS avec des messages g
 - Banques d'images : respecter la licence et le crédit.
 
 
-## Direction éditoriale (branche design-editorial)
+## Direction retenue
 
-- Polices : Poppins (400, 500, 700), fichiers `fonts/poppins-*.woff` (sous-ensemble latin). Les fichiers `inter-*` et `lora-*` ne sont plus utilisés.
-- Palette : papier #F6F3EE, encre #14110F, brique #C2410C. Angles à 2 px, pas de pastilles.
-- Les animations (carrousel du hero, carte, formats) et le style à points sont conservés.
-- Textes : surcharge en fin de `tools/i18n.py` (bloc « Direction éditoriale »).
+- Mise en page, polices (Inter, Lora en italique pour l'accent) et couleurs de la V5 : fond blanc, bleu nuit, brique #C2410C, angles arrondis.
+- Nouvelles accroches FR/NL/EN : bloc « Direction éditoriale » en fin de `tools/i18n.py`.
+- Carte interactive : survol, sélection d'une ville, axes éclairés.
 - Briefs de référence : `docs/brief-brochure.md` et `docs/brief-site.md`.

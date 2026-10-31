@@ -257,7 +257,7 @@ def slides(d):
 
 TILE_DECO = [
     ('a', '<svg class="tile__deco" viewBox="0 0 120 120" aria-hidden="true"><g fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.2"><circle cx="70" cy="50" r="48"/><circle cx="70" cy="50" r="34"/><circle cx="70" cy="50" r="20"/></g><circle cx="70" cy="50" r="9" fill="#FDBA74"/></svg>'),
-    ('b', '<svg class="tile__deco" viewBox="0 0 120 120" aria-hidden="true"><rect x="38" y="22" width="66" height="66" rx="10" fill="#C2410C" transform="rotate(12 71 55)"/><text x="71" y="68" text-anchor="middle" font-family="Poppins,sans-serif" font-weight="600" font-size="40" fill="#fff" transform="rotate(12 71 55)">%</text></svg>'),
+    ('b', '<svg class="tile__deco" viewBox="0 0 120 120" aria-hidden="true"><rect x="38" y="22" width="66" height="66" rx="10" fill="#C2410C" transform="rotate(12 71 55)"/><text x="71" y="68" text-anchor="middle" font-family="Inter Display,Inter,sans-serif" font-weight="600" font-size="40" fill="#fff" transform="rotate(12 71 55)">%</text></svg>'),
     ('c', '<svg class="tile__deco" viewBox="0 0 120 120" aria-hidden="true"><circle cx="80" cy="110" r="52" fill="#FDBA74"/><circle cx="80" cy="110" r="38" fill="#C2410C"/><circle cx="80" cy="110" r="24" fill="#0B1220"/></svg>'),
     ('d', '<svg class="tile__deco" viewBox="0 0 120 120" aria-hidden="true"><circle cx="48" cy="46" r="30" fill="#C2410C"/><circle cx="78" cy="46" r="30" fill="#0B1220" fill-opacity=".92"/><circle cx="63" cy="72" r="30" fill="#fff" fill-opacity=".9"/></svg>'),
     ('e', '<svg class="tile__deco" viewBox="0 0 120 120" aria-hidden="true"><g fill="#FB923C" fill-opacity=".4"><circle cx="32" cy="32" r="9"/><circle cx="62" cy="32" r="9"/><circle cx="92" cy="32" r="9"/><circle cx="32" cy="62" r="9"/><circle cx="92" cy="62" r="9"/><circle cx="32" cy="92" r="9"/><circle cx="62" cy="92" r="9"/><circle cx="92" cy="92" r="9"/></g><circle cx="62" cy="62" r="12" fill="#fff"/></svg>'),
@@ -343,7 +343,7 @@ def scene_e(label):
     return (
         '<svg class="fcard__media" viewBox="0 0 300 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'
         '<rect width="300" height="340" fill="#0B1220"/>'
-        '<text x="150" y="40" text-anchor="middle" font-family="Poppins,sans-serif" font-weight="600" font-size="26" fill="#fff">%s</text>%s</svg>' % (label, sq))
+        '<text x="150" y="40" text-anchor="middle" font-family="Inter Display,Inter,sans-serif" font-weight="600" font-size="26" fill="#fff">%s</text>%s</svg>' % (label, sq))
 
 
 def blocks(lang, d):
@@ -392,7 +392,7 @@ def blocks(lang, d):
         return h
     loc_opts = radios('lieu', d['o_place0'], d['loc'])
     per_opts = radios('periode', d['o_place0'], d['per'])
-    prog = ''.join('<li%s><span class="qprog__n">%d</span><span class="qprog__t">%s</span></li>' % (' aria-current="step"' if n == 0 else '', n + 1, d['qs_labels'][n]) for n in range(3))
+    prog = ''.join('<li%s><span class="qprog__n">%d</span><span class="qprog__t">%s</span></li>' % (' aria-current="step"' if n == 0 else '', n + 1, d['qs_labels'][n]) for n in range(4))
 
     sw = ''
     for L in ORDER:
@@ -424,7 +424,7 @@ def main():
         d = LANGS[lang]
         m = blocks(lang, d)
         flat = {k: v for k, v in d.items() if isinstance(v, str)}
-        for n in range(3):
+        for n in range(4):
             flat['qs_h_%d' % n] = d['qs_h'][n]
         flat['form_legal'] = d['form_legal'].replace('{legal_href}', m['LEGAL_HREF'])
         mapping = dict(m)

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{meta_title}}</title>
   <meta name="description" content="{{meta_desc}}">
-  <meta name="theme-color" content="#F6F3EE">
+  <meta name="theme-color" content="#FFFFFF">
   <meta property="og:title" content="{{meta_title}}">
   <meta property="og:description" content="{{og_desc}}">
   <meta property="og:type" content="website">
@@ -13,8 +13,8 @@
   <meta property="og:url" content="{{CANON}}">
   <link rel="canonical" href="{{CANON}}">
 {{HREFLANG}}  <link rel="icon" href="{{BASE}}assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="{{BASE}}fonts/poppins-400.woff" as="font" type="font/woff" crossorigin>
-  <link rel="preload" href="{{BASE}}fonts/poppins-700.woff" as="font" type="font/woff" crossorigin>
+  <link rel="preload" href="{{BASE}}fonts/inter-400.woff" as="font" type="font/woff" crossorigin>
+  <link rel="preload" href="{{BASE}}fonts/inter-display-600.woff" as="font" type="font/woff" crossorigin>
   <link rel="stylesheet" href="{{BASE}}css/styles.css">
   <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -140,7 +140,7 @@
     </section>
 
     <section class="section" id="devis" aria-labelledby="t-devis">
-      <div class="container container--narrow">
+      <div class="container">
         <div class="section__head">
           <p class="kicker">{{quote_kicker}}</p>
           <h2 id="t-devis">{{quote_h2}}</h2>
@@ -148,69 +148,87 @@
         </div>
         <form class="form" id="contact-form" novalidate>
           <ol class="qprog" aria-label="{{qs_prog}}">{{QPROG}}</ol>
+          <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
 
-          <fieldset class="qstep" data-step="1">
-            <legend class="qstep__h" tabindex="-1">{{qs_h_0}}</legend>
-            <div class="field">
-              <label for="f-profil">{{l_profil}}</label>
-              <select id="f-profil" name="profil">{{PROFIL_OPTS}}</select>
-            </div>
-            <div class="field" role="radiogroup" aria-labelledby="l-lieu">
-              <span class="label" id="l-lieu">{{l_place}}</span>
-              <div class="chips">{{LOC_OPTS}}</div>
-            </div>
-            <div class="field" role="radiogroup" aria-labelledby="l-periode">
-              <span class="label" id="l-periode">{{l_period}}</span>
-              <div class="chips">{{PER_OPTS}}</div>
-            </div>
-          </fieldset>
+          <div class="giant" id="giant">
+            <div class="giant__grid">
+              <fieldset class="qstep qpanel" data-step="1">
+                <span class="qpanel__n" aria-hidden="true">1</span>
+                <legend class="qstep__h" tabindex="-1">{{qs_h_0}}</legend>
+                <div class="field">
+                  <label for="f-profil">{{l_profil}}</label>
+                  <select id="f-profil" name="profil">{{PROFIL_OPTS}}</select>
+                </div>
+                <div class="field" role="radiogroup" aria-labelledby="l-lieu">
+                  <span class="label" id="l-lieu">{{l_place}}</span>
+                  <div class="chips">{{LOC_OPTS}}</div>
+                </div>
+                <div class="field" role="radiogroup" aria-labelledby="l-periode">
+                  <span class="label" id="l-periode">{{l_period}}</span>
+                  <div class="chips">{{PER_OPTS}}</div>
+                </div>
+                <div class="qpanel__actions"><button class="btn qnext" type="button">{{next}}</button></div>
+              </fieldset>
 
-          <fieldset class="qstep" data-step="2">
-            <legend class="qstep__h" tabindex="-1">{{qs_h_1}}</legend>
-            <div class="form__row">
-              <div class="field">
-                <label for="f-zone">{{l_zone}}</label>
-                <input id="f-zone" name="zone" type="text" autocomplete="address-level2">
-              </div>
-              <div class="field">
-                <label for="f-debut">{{l_start}}</label>
-                <input id="f-debut" name="debut" type="month">
-              </div>
-            </div>
-            <div class="field">
-              <label for="f-message">{{l_msg}} <span class="opt">{{l_opt}}</span></label>
-              <textarea id="f-message" name="message" rows="4"></textarea>
-            </div>
-          </fieldset>
+              <fieldset class="qstep qpanel" data-step="2">
+                <span class="qpanel__n" aria-hidden="true">2</span>
+                <legend class="qstep__h" tabindex="-1">{{qs_h_1}}</legend>
+                <div class="form__row">
+                  <div class="field">
+                    <label for="f-zone">{{l_zone}}</label>
+                    <input id="f-zone" name="zone" type="text" autocomplete="address-level2">
+                  </div>
+                  <div class="field">
+                    <label for="f-debut">{{l_start}}</label>
+                    <input id="f-debut" name="debut" type="month">
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="f-message">{{l_msg}} <span class="opt">{{l_opt}}</span></label>
+                  <textarea id="f-message" name="message" rows="4"></textarea>
+                </div>
+                <div class="qpanel__actions"><button class="btn btn--ghost qback" type="button">{{back}}</button><button class="btn qnext" type="button">{{next}}</button></div>
+              </fieldset>
 
-          <fieldset class="qstep" data-step="3">
-            <legend class="qstep__h" tabindex="-1">{{qs_h_2}}</legend>
-            <div class="form__row">
-              <div class="field">
-                <label for="f-nom">{{l_name}} <span aria-hidden="true">*</span></label>
-                <input id="f-nom" name="nom" type="text" autocomplete="name" required>
-              </div>
-              <div class="field">
-                <label for="f-email">{{l_email}} <span aria-hidden="true">*</span></label>
-                <input id="f-email" name="email" type="email" autocomplete="email" required>
-              </div>
-            </div>
-            <div class="field">
-              <label for="f-entreprise">{{l_company}}</label>
-              <input id="f-entreprise" name="entreprise" type="text" autocomplete="organization">
-            </div>
-            <div class="recap" aria-live="polite">
-              <p class="recap__h">{{recap}}</p>
-              <dl class="recap__list"></dl>
-            </div>
-          </fieldset>
+              <fieldset class="qstep qpanel" data-step="3">
+                <span class="qpanel__n" aria-hidden="true">3</span>
+                <legend class="qstep__h" tabindex="-1">{{qs_h_2}}</legend>
+                <div class="field">
+                  <label for="f-nom">{{l_name}} <span aria-hidden="true">*</span></label>
+                  <input id="f-nom" name="nom" type="text" autocomplete="name" required>
+                </div>
+                <div class="field">
+                  <label for="f-email">{{l_email}} <span aria-hidden="true">*</span></label>
+                  <input id="f-email" name="email" type="email" autocomplete="email" required>
+                </div>
+                <div class="field">
+                  <label for="f-entreprise">{{l_company}}</label>
+                  <input id="f-entreprise" name="entreprise" type="text" autocomplete="organization">
+                </div>
+                <div class="qpanel__actions"><button class="btn btn--ghost qback" type="button">{{back}}</button><button class="btn qnext" type="button">{{next}}</button></div>
+              </fieldset>
 
-          <div class="form__foot">
-            <button class="btn btn--ghost qback" type="button" hidden>{{back}}</button>
-            <button class="btn qnext" type="button" hidden>{{next}}</button>
-            <button class="btn qsend" type="submit">{{send}}</button>
-            <p class="form__status" role="status" aria-live="polite"></p>
+              <fieldset class="qstep qpanel" data-step="4">
+                <span class="qpanel__n" aria-hidden="true">4</span>
+                <legend class="qstep__h" tabindex="-1">{{qs_h_3}}</legend>
+                <div class="recap" aria-live="polite">
+                  <p class="recap__h">{{recap}}</p>
+                  <dl class="recap__list"></dl>
+                </div>
+                <div class="qpanel__actions"><button class="btn btn--ghost qback" type="button">{{back}}</button><button class="btn qsend" type="submit">{{send}}</button></div>
+              </fieldset>
+            </div>
+            <div class="giant__led" aria-hidden="true">
+              <canvas class="giant__canvas" data-ads="{{ad1}}|B&amp;K|{{ad3}}"></canvas>
+              <p class="giant__msg" data-sending="{{qscreen_sending}}" data-done="{{qscreen_done}}" data-fail="{{qscreen_fail}}">{{qscreen_sending}}</p>
+            </div>
           </div>
+
+          <div class="giant__after" hidden>
+            <button class="btn giant__again" type="button">{{again}}</button>
+            <a class="btn btn--ghost giant__mail" href="mailto:contact@bkconsult.be">{{open_mail}}</a>
+          </div>
+          <p class="form__status" role="status" aria-live="polite"></p>
           <p class="form__legal">{{form_legal}}</p>
         </form>
       </div>
