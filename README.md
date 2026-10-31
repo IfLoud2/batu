@@ -39,7 +39,7 @@ python3 tools/build.py
 
 - Fond blanc, texte `#0B1220`, surface `#F5F7FA`, filets `#E3E7EE`.
 - Accent unique `--accent` (`#C2410C`, rouge brique) et `--accent-rgb` : boutons, liens, icônes, focus. Changer ces deux variables dans `:root` change tout le site. `--led` (`#FB923C`) sert uniquement sur les fonds sombres.
-- Hero : à gauche, 5 scènes vectorielles toutes les 4,5 s, chacune avec un type de panneau différent (fixe extérieur, totem intérieur, mur modulaire, écran sur roulettes, abribus) et une étiquette. Bouton pause, arrêt au survol/focus, fixe avec `prefers-reduced-motion`.
+- Hero : à gauche, 5 scènes vectorielles toutes les 4,5 s, chacune avec un type de panneau différent (fixe extérieur, totem intérieur, mur modulaire, écran sur roulettes, écran suspendu) et une étiquette. Bouton pause, arrêt au survol/focus, fixe avec `prefers-reduced-motion`.
 - Carte (2e section, fond sombre) : points LED qui s'allument autour des villes du type de lieu choisi. Démo étiquetée « Illustration ». À remplacer par les vrais emplacements ou à retirer avant publication.
 - Carte : légende « 200+ écrans · 100 intérieur · 100 extérieur » sous la carte (hypothèse de répartition à confirmer).
 - Pour qui : 7 tuiles colorées, chacune mène au devis avec l'activité pré-remplie.
@@ -68,3 +68,12 @@ Aucune photo ni image IA. Le hero est un montage en HTML/CSS avec des messages g
 - Une photo ou une scène fictive présentée comme un écran ou un événement réel peut être trompeuse.
 - Photos de personnes : consentement requis (article XI.174 du Code de droit économique, RGPD).
 - Banques d'images : respecter la licence et le crédit.
+
+
+## Direction éditoriale (branche design-editorial)
+
+- Polices : Poppins (400, 500, 700), fichiers `fonts/poppins-*.woff` (sous-ensemble latin). Les fichiers `inter-*` et `lora-*` ne sont plus utilisés.
+- Palette : papier #F6F3EE, encre #14110F, brique #C2410C. Angles à 2 px, pas de pastilles.
+- Les animations (carrousel du hero, carte, formats) et le style à points sont conservés.
+- Textes : surcharge en fin de `tools/i18n.py` (bloc « Direction éditoriale »).
+- Briefs de référence : `docs/brief-brochure.md` et `docs/brief-site.md`.

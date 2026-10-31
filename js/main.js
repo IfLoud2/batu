@@ -157,7 +157,10 @@
     pins.forEach(function (p) {
       var on = p.dataset.types.split(' ').indexOf(type) !== -1;
       p.classList.toggle('is-on', on);
-      if (on && p.classList.contains('pin')) names.push(p.querySelector('.pin__label').textContent);
+      if (!on) return;
+      if (type === 'axe') {
+        if (p.classList.contains('road')) names.push(p.dataset.name);
+      } else if (p.classList.contains('pin')) names.push(p.querySelector('.pin__label').textContent);
     });
     caption.textContent = I18N.cap_prefix + names.join(', ') + '.';
   }
