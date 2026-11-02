@@ -147,10 +147,11 @@ def creative(i, x, y, w, h, tag, lines, under=''):
     out += '<g class="sv-panel" clip-path="url(#pc%d)"><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s"/>' % (i, x, y, w, h, bg)
     out += art(i, x + w - s * 1.08 - pad, y + s * 1.08 + pad, s)
     out += under
-    out += '<g class="sv-lines"><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="%.1f" fill="none" stroke="%s" stroke-width="1"/>' % (x + pad, chip_y, chip_w, chip_h, chip_h / 2, tc)
+    out += '<g class="sv-lines"><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="%.1f" fill="%s" stroke="%s" stroke-width="1"/>' % (x + pad, chip_y, chip_w, chip_h, chip_h / 2, bg if under else 'none', tc)
     out += '<text class="sv-tag" x="%.1f" y="%.1f" font-size="%.1f" fill="%s" letter-spacing="%.1f">%s</text>' % (x + pad + ft * .8, chip_y + chip_h / 2 + ft * .36, ft, tc, ft * .08, tag.upper())
     for k, line in enumerate(lines):
-        out += '<text class="sv-t" x="%.1f" y="%.1f" font-size="%.1f" fill="%s">%s</text>' % (x + pad, base0 + k * lh, fs, fg, line)
+        halo = ' stroke="%s" stroke-width="%.1f" stroke-linejoin="round" paint-order="stroke"' % (bg, fs * .16) if under else ''
+        out += '<text class="sv-t" x="%.1f" y="%.1f" font-size="%.1f" fill="%s"%s>%s</text>' % (x + pad, base0 + k * lh, fs, fg, halo, line)
     out += '</g><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="url(#led%d)"/></g>' % (x, y, w, h, i)
     return out
 

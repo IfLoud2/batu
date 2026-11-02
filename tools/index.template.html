@@ -31,7 +31,6 @@
       </button>
       <nav class="nav" id="nav" aria-label="{{nav_aria}}">
         <ul>
-          <li><a href="#lieux">{{nav_places}}</a></li>
           <li><a href="#pour-qui">{{nav_who}}</a></li>
           <li><a href="#formats">{{nav_formats}}</a></li>
           <li><a href="#fonctionnement">{{nav_how}}</a></li>
@@ -53,7 +52,6 @@
           <p class="lead lead--tag">{{tagline}}</p>
           <div class="actions">
             <a class="btn" href="#devis">{{cta_hero}}</a>
-            <a class="btn btn--ghost" href="#lieux">{{cta2}}</a>
           </div>
         </div>
 
@@ -69,26 +67,6 @@
             <div class="tv__dots">{{DOTS_NAV}}</div>
           </div>
           <p class="tv__note">{{tv_note}}</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="places" id="lieux" aria-labelledby="t-lieux">
-      <div class="container">
-        <div class="places__head">
-          <p class="kicker kicker--led">{{places_kicker}}</p>
-          <h2 id="t-lieux">{{places_h2}}</h2>
-          <p class="places__lead">{{places_lead}}</p>
-        </div>
-        <div class="places__grid">
-          <div class="types" role="group" aria-label="{{types_aria}}">
-{{TYPES}}          </div>
-          <figure class="map">
-            <span class="map__badge">{{map_badge}}</span>
-            {{MAP}}
-            <p class="map__stats">{{stats_html}}</p>
-            <figcaption class="map__cap" role="status" aria-live="polite"></figcaption>
-          </figure>
         </div>
       </div>
     </section>
@@ -153,9 +131,9 @@
 
           <div class="giant" id="giant">
             <div class="giant__grid">
-              <fieldset class="qstep qpanel" data-step="1">
+              <fieldset class="qstep qpanel" data-step="1" aria-labelledby="qh0">
                 <span class="qpanel__n" aria-hidden="true">1</span>
-                <legend class="qstep__h" tabindex="-1">{{qs_h_0}}</legend>
+                <div class="qstep__h" id="qh0" tabindex="-1">{{qs_h_0}}</div>
                 <div class="field">
                   <label for="f-profil">{{l_profil}}</label>
                   <select id="f-profil" name="profil">{{PROFIL_OPTS}}</select>
@@ -171,9 +149,9 @@
                 <div class="qpanel__actions"><button class="btn qnext" type="button">{{next}}</button></div>
               </fieldset>
 
-              <fieldset class="qstep qpanel" data-step="2">
+              <fieldset class="qstep qpanel" data-step="2" aria-labelledby="qh1">
                 <span class="qpanel__n" aria-hidden="true">2</span>
-                <legend class="qstep__h" tabindex="-1">{{qs_h_1}}</legend>
+                <div class="qstep__h" id="qh1" tabindex="-1">{{qs_h_1}}</div>
                 <div class="form__row">
                   <div class="field">
                     <label for="f-zone">{{l_zone}}</label>
@@ -191,9 +169,9 @@
                 <div class="qpanel__actions"><button class="btn btn--ghost qback" type="button">{{back}}</button><button class="btn qnext" type="button">{{next}}</button></div>
               </fieldset>
 
-              <fieldset class="qstep qpanel" data-step="3">
+              <fieldset class="qstep qpanel" data-step="3" aria-labelledby="qh2">
                 <span class="qpanel__n" aria-hidden="true">3</span>
-                <legend class="qstep__h" tabindex="-1">{{qs_h_2}}</legend>
+                <div class="qstep__h" id="qh2" tabindex="-1">{{qs_h_2}}</div>
                 <div class="field">
                   <label for="f-nom">{{l_name}} <span aria-hidden="true">*</span></label>
                   <input id="f-nom" name="nom" type="text" autocomplete="name" required>
@@ -209,9 +187,9 @@
                 <div class="qpanel__actions"><button class="btn btn--ghost qback" type="button">{{back}}</button><button class="btn qnext" type="button">{{next}}</button></div>
               </fieldset>
 
-              <fieldset class="qstep qpanel" data-step="4">
+              <fieldset class="qstep qpanel" data-step="4" aria-labelledby="qh3">
                 <span class="qpanel__n" aria-hidden="true">4</span>
-                <legend class="qstep__h" tabindex="-1">{{qs_h_3}}</legend>
+                <div class="qstep__h" id="qh3" tabindex="-1">{{qs_h_3}}</div>
                 <div class="recap" aria-live="polite">
                   <p class="recap__h">{{recap}}</p>
                   <dl class="recap__list"></dl>

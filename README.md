@@ -27,7 +27,7 @@ python3 tools/build.py
 
 | Chemin | Rôle |
 |---|---|
-| `index.html`, `nl/index.html`, `en/index.html` | Hero (panneaux variés), carte des lieux, pour qui, formats, fonctionnement, FAQ, devis |
+| `index.html`, `nl/index.html`, `en/index.html` | Hero (panneaux variés), pour qui, formats, fonctionnement, FAQ, devis |
 | `mentions-legales.html`, `nl/wettelijke-vermeldingen.html`, `en/legal-notice.html` | Mentions légales (champs à compléter) |
 | `tools/` | Générateur (`build.py`, `i18n.py`, `belgium.py`, modèles) |
 | `css/styles.css` | Jetons de couleur et de police en tête de fichier (`:root`) |
@@ -79,7 +79,7 @@ Aucune photo ni image IA. Le hero est un montage en HTML/CSS avec des messages g
 
 ## Envoi du formulaire (Cloudflare Pages + Resend)
 
-- Fonction: `functions/api/contact.js` (POST /api/contact), envoie un mail à `TO_EMAIL` avec l'adresse du visiteur en reply-to.
+- Fonction: `functions/api/contact.js` (POST /api/contact), envoie un mail à `TO_EMAIL` avec l'adresse du visiteur en reply-to, puis un accusé de réception au visiteur (FR/NL/EN) depuis `FROM_EMAIL`, avec `TO_EMAIL` en reply-to.
 - Variables (Pages > Settings > Variables and Secrets): `RESEND_API_KEY` (secret), `FROM_EMAIL`, `TO_EMAIL`, `ALLOWED_ORIGIN` (facultatif).
 - Test local: copier `.dev.vars.example` en `.dev.vars`, le remplir, puis `wrangler pages dev .`
 - Production: `FROM_EMAIL` sur un domaine validé dans Resend (DNS SPF/DKIM, sans toucher aux MX existants).

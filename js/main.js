@@ -113,8 +113,28 @@
     });
   });
 
-  tv.addEventListener('mouseenter', function () { hold = true; stop(); });
-  tv.addEventListener('mouseleave', function () { hold = false; play(); });
+  tv.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { hold = true; stop(); } });
+  tv.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { hold = false; play(); } });
+
+  var px0 = 0, py0 = 0, pid = null;
+  screen.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    px0 = e.clientX; py0 = e.clientY; pid = e.pointerId;
+  });
+  screen.addEventListener('pointerup', function (e) {
+    if (pid !== e.pointerId) return;
+    pid = null;
+    var dx = e.clientX - px0, dy = e.clientY - py0;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) show(current + (dx < 0 ? 1 : -1));
+    else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) show(current + 1);
+    else return;
+    play();
+  });
+  screen.addEventListener('pointercancel', function () { pid = null; });
+  tv.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { show(current + 1); play(); }
+    else if (e.key === 'ArrowLeft') { show(current - 1); play(); }
+  });
   tv.addEventListener('focusin', function () { hold = true; stop(); });
   tv.addEventListener('focusout', function () { hold = false; play(); });
 
@@ -142,105 +162,107 @@
     });
   }
 
-  var typeButtons = Array.prototype.slice.call(document.querySelectorAll('.type'));
-  var pins = Array.prototype.slice.call(document.querySelectorAll('[data-types]'));
-  var caption = document.querySelector('.map__cap');
+  if (document.querySelector('.map__svg')) {
+    var typeButtons = Array.prototype.slice.call(document.querySelectorAll('.type'));
+    var pins = Array.prototype.slice.call(document.querySelectorAll('[data-types]'));
+    var caption = document.querySelector('.map__cap');
 
-  var mapSvg = document.querySelector('.map__svg');
-  var roads = Array.prototype.slice.call(mapSvg.querySelectorAll('.road'));
-  var tags = Array.prototype.slice.call(mapSvg.querySelectorAll('.road__tag'));
-  var cityPins = Array.prototype.slice.call(mapSvg.querySelectorAll('.pin'));
-  var cursor = mapSvg.querySelector('.cursor');
-  var currentType = typeButtons[0];
-  var picked = null;
+    var mapSvg = document.querySelector('.map__svg');
+    var roads = Array.prototype.slice.call(mapSvg.querySelectorAll('.road'));
+    var tags = Array.prototype.slice.call(mapSvg.querySelectorAll('.road__tag'));
+    var cityPins = Array.prototype.slice.call(mapSvg.querySelectorAll('.pin'));
+    var cursor = mapSvg.querySelector('.cursor');
+    var currentType = typeButtons[0];
+    var picked = null;
 
-  function clearPick() {
-    picked = null;
-    cityPins.forEach(function (p) { p.classList.remove('is-picked'); });
-    roads.forEach(function (r) { r.classList.remove('is-hot'); });
-    tags.forEach(function (t) { t.classList.remove('is-hot'); });
-  }
+    function clearPick() {
+      picked = null;
+      cityPins.forEach(function (p) { p.classList.remove('is-picked'); });
+      roads.forEach(function (r) { r.classList.remove('is-hot'); });
+      tags.forEach(function (t) { t.classList.remove('is-hot'); });
+    }
 
-  function selectType(button) {
-    var type = button.dataset.type;
-    var names = [];
-    currentType = button;
-    clearPick();
+    function selectType(button) {
+      var type = button.dataset.type;
+      var names = [];
+      currentType = button;
+      clearPick();
+      typeButtons.forEach(function (b) {
+        var on = b === button;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      pins.forEach(function (p) {
+        var on = p.dataset.types.split(' ').indexOf(type) !== -1;
+        p.classList.toggle('is-on', on);
+        if (!on) return;
+        if (type === 'axe') {
+          if (p.classList.contains('road')) names.push(p.dataset.name);
+        } else if (p.classList.contains('pin')) names.push(p.querySelector('.pin__label').textContent);
+      });
+      caption.textContent = I18N.cap_prefix + names.join(', ') + '.';
+    }
+
+    function pickCity(pin) {
+      var city = pin.dataset.city;
+      var label = pin.getAttribute('aria-label');
+      var kinds = pin.dataset.types.split(' ').map(function (t) { return I18N.types[['cc', 'event', 'axe'].indexOf(t)]; });
+      var hot = [];
+      clearPick();
+      picked = pin;
+      pin.classList.add('is-picked');
+      roads.forEach(function (r) {
+        if (r.dataset.cities.split(',').indexOf(city) === -1) return;
+        r.classList.add('is-hot');
+        hot.push(r.dataset.name);
+      });
+      tags.forEach(function (t) { t.classList.toggle('is-hot', hot.indexOf(t.dataset.name) !== -1); });
+      caption.textContent = '';
+      var strong = document.createElement('strong');
+      strong.textContent = label;
+      caption.appendChild(strong);
+      caption.appendChild(document.createTextNode(' · ' + kinds.join(' · ') + (hot.length ? ' · ' + I18N.axes + hot.join(', ') : '') + ' '));
+      var a = document.createElement('a');
+      a.href = '#devis';
+      a.textContent = I18N.cta_city.replace('{city}', label) + ' →';
+      a.addEventListener('click', function () {
+        var z = document.getElementById('f-zone');
+        if (z) z.value = label;
+      });
+      caption.appendChild(a);
+    }
+
+    cityPins.forEach(function (pin) {
+      pin.addEventListener('click', function (e) { e.stopPropagation(); pickCity(pin); });
+      pin.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickCity(pin); }
+      });
+    });
+
+    mapSvg.addEventListener('click', function () { if (picked) selectType(currentType); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && picked) selectType(currentType);
+    });
+
+    function moveCursor(e) {
+      var m = mapSvg.getScreenCTM();
+      if (!m) return;
+      var pt = mapSvg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      pt = pt.matrixTransform(m.inverse());
+      cursor.setAttribute('cx', pt.x.toFixed(1));
+      cursor.setAttribute('cy', pt.y.toFixed(1));
+    }
+    mapSvg.addEventListener('pointermove', moveCursor);
+    mapSvg.addEventListener('pointerdown', moveCursor);
+    mapSvg.addEventListener('pointerleave', function () { cursor.setAttribute('cx', '-200'); cursor.setAttribute('cy', '-200'); });
+
     typeButtons.forEach(function (b) {
-      var on = b === button;
-      b.classList.toggle('is-active', on);
-      b.setAttribute('aria-pressed', String(on));
+      b.addEventListener('click', function () { selectType(b); });
     });
-    pins.forEach(function (p) {
-      var on = p.dataset.types.split(' ').indexOf(type) !== -1;
-      p.classList.toggle('is-on', on);
-      if (!on) return;
-      if (type === 'axe') {
-        if (p.classList.contains('road')) names.push(p.dataset.name);
-      } else if (p.classList.contains('pin')) names.push(p.querySelector('.pin__label').textContent);
-    });
-    caption.textContent = I18N.cap_prefix + names.join(', ') + '.';
+    selectType(typeButtons[0]);
   }
-
-  function pickCity(pin) {
-    var city = pin.dataset.city;
-    var label = pin.getAttribute('aria-label');
-    var kinds = pin.dataset.types.split(' ').map(function (t) { return I18N.types[['cc', 'event', 'axe'].indexOf(t)]; });
-    var hot = [];
-    clearPick();
-    picked = pin;
-    pin.classList.add('is-picked');
-    roads.forEach(function (r) {
-      if (r.dataset.cities.split(',').indexOf(city) === -1) return;
-      r.classList.add('is-hot');
-      hot.push(r.dataset.name);
-    });
-    tags.forEach(function (t) { t.classList.toggle('is-hot', hot.indexOf(t.dataset.name) !== -1); });
-    caption.textContent = '';
-    var strong = document.createElement('strong');
-    strong.textContent = label;
-    caption.appendChild(strong);
-    caption.appendChild(document.createTextNode(' · ' + kinds.join(' · ') + (hot.length ? ' · ' + I18N.axes + hot.join(', ') : '') + ' '));
-    var a = document.createElement('a');
-    a.href = '#devis';
-    a.textContent = I18N.cta_city.replace('{city}', label) + ' →';
-    a.addEventListener('click', function () {
-      var z = document.getElementById('f-zone');
-      if (z) z.value = label;
-    });
-    caption.appendChild(a);
-  }
-
-  cityPins.forEach(function (pin) {
-    pin.addEventListener('click', function (e) { e.stopPropagation(); pickCity(pin); });
-    pin.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickCity(pin); }
-    });
-  });
-
-  mapSvg.addEventListener('click', function () { if (picked) selectType(currentType); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && picked) selectType(currentType);
-  });
-
-  function moveCursor(e) {
-    var m = mapSvg.getScreenCTM();
-    if (!m) return;
-    var pt = mapSvg.createSVGPoint();
-    pt.x = e.clientX;
-    pt.y = e.clientY;
-    pt = pt.matrixTransform(m.inverse());
-    cursor.setAttribute('cx', pt.x.toFixed(1));
-    cursor.setAttribute('cy', pt.y.toFixed(1));
-  }
-  mapSvg.addEventListener('pointermove', moveCursor);
-  mapSvg.addEventListener('pointerdown', moveCursor);
-  mapSvg.addEventListener('pointerleave', function () { cursor.setAttribute('cx', '-200'); cursor.setAttribute('cy', '-200'); });
-
-  typeButtons.forEach(function (b) {
-    b.addEventListener('click', function () { selectType(b); });
-  });
-  selectType(typeButtons[0]);
 
   var form = document.getElementById('contact-form');
 
@@ -377,6 +399,15 @@
   function finale(payload) {
     steps.forEach(function (s) { s.setAttribute('inert', ''); });
     giant.classList.add('is-sending');
+    if (window.matchMedia('(max-width:900px)').matches) {
+      var h0 = giant.offsetHeight;
+      giant.style.height = h0 + 'px';
+      window.requestAnimationFrame(function () { giant.style.height = Math.round(Math.min(window.innerWidth * 1.15, 460)) + 'px'; });
+      later(function () {
+        var top = giant.getBoundingClientRect().top + window.pageYOffset - 88;
+        window.scrollTo({ top: Math.max(0, top), behavior: reduced ? 'auto' : 'smooth' });
+      }, 760);
+    }
     setMsg('sending');
     ledDone = false;
     outcome = null;
@@ -404,7 +435,7 @@
   var ctx = cv.getContext('2d');
   var ads = (cv.getAttribute('data-ads') || '').split('|');
   var adBmp = [], adW = 0, adH = 0, adR = null, W = 0, H = 0;
-  var CELL = 16, cols = 0, rows = 0, heat = null, raf = 0, t0 = 0, last = null, dpr = 1;
+  var D = 4, CELL = 16, cols = 0, rows = 0, heat = null, raf = 0, t0 = 0, last = null, dpr = 1;
 
   function sizeCanvas() {
     var r = ledEl.getBoundingClientRect();
@@ -419,8 +450,9 @@
   }
 
   function buildAds() {
-    var pw = Math.min(W * 0.62, 640);
-    adW = Math.floor(pw / 4); adH = Math.floor(adW * 0.34);
+    D = W < 600 ? 3 : 4;
+    var pw = W < 600 ? W * 0.9 : Math.min(W * 0.62, 640);
+    adW = Math.floor(pw / D); adH = Math.floor(adW * 0.34);
     var o = document.createElement('canvas'); o.width = adW; o.height = adH;
     var c = o.getContext('2d');
     adBmp = ads.map(function (txt) {
@@ -483,7 +515,7 @@
   }
 
   function scene(s) {
-    var pw = adW * 4, ph = adH * 4, px = (W - pw) / 2, py = H * 0.13, fy = H * 0.84;
+    var pw = adW * D, ph = adH * D, px = (W - pw) / 2, py = H * 0.13, fy = H * 0.84;
     var g = ctx.createRadialGradient(W / 2, py + ph, 10, W / 2, py + ph, W * 0.55);
     g.addColorStop(0, 'rgba(251,146,60,.22)'); g.addColorStop(1, 'rgba(251,146,60,0)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -500,12 +532,12 @@
     for (var y = 0; y < adH; y++) for (var x = 0; x < adW; x++) {
       var i = y * adW + x, on = outcome && adR[i] < tr ? adBmp[k][i] : hg[i];
       ctx.fillStyle = on ? (adR[i] < 0.12 ? '#FFE3C4' : '#FB923C') : 'rgba(251,146,60,.09)';
-      ctx.beginPath(); ctx.arc(px + x * 4 + 2, py + y * 4 + 2, on ? 1.45 : 0.7, 0, 6.2832); ctx.fill();
+      ctx.beginPath(); ctx.arc(px + x * D + D / 2, py + y * D + D / 2, on ? D * 0.36 : D * 0.17, 0, 6.2832); ctx.fill();
     }
     var walkT = 5.2, u = Math.min(s / walkT, 1), e = 1 - Math.pow(1 - u, 2.2);
     var x0 = -W * 0.06, x1 = W * 0.27, pxm = x0 + (x1 - x0) * e, still = u >= 1;
     ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(pxm, fy + 4, H * 0.08, 5, 0, 0, 6.2832); ctx.fill();
-    person(pxm, fy, H * 0.22, s * 7.5, still, still);
+    person(pxm, fy, Math.min(H * 0.22, W * 0.3), s * 7.5, still, still);
   }
 
 
@@ -568,6 +600,7 @@
     timers.forEach(window.clearTimeout);
     timers = [];
     giant.classList.remove('is-sending', 'is-zoom', 'is-led');
+    giant.style.height = '';
     stopLed();
     outcome = null;
     after.hidden = true;
