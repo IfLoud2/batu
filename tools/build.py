@@ -31,11 +31,29 @@ def build_map(lang, d):
     H = max(ys) - min(ys) + 2 * pad
     path = 'M' + ' L'.join('%.1f,%.1f' % (x - x0, y - y0) for x, y in pts) + 'Z'
     types = {
-        'Bruxelles': 'cc ville bus', 'Anvers': 'cc pieton', 'Gand': 'cc pieton',
-        'Liège': 'cc pieton event', 'Charleroi': 'cc bus', 'Namur': 'ville event',
-        'Mons': 'ville', 'Bruges': 'ville event', 'Hasselt': 'ville',
-        'Louvain': 'pieton', 'Tournai': 'pieton', 'Malines': 'bus',
-        'Courtrai': 'bus', 'Arlon': 'bus', 'Bastogne': 'event', 'Ostende': 'event'}
+        'Bruxelles': 'cc axe', 'Anvers': 'cc axe', 'Gand': 'cc axe', 'Liège': 'cc event axe',
+        'Charleroi': 'cc axe', 'Namur': 'event axe', 'Mons': 'axe', 'Bruges': 'event axe',
+        'Hasselt': 'axe', 'Louvain': 'axe', 'Tournai': 'axe', 'Malines': 'axe',
+        'Courtrai': 'axe', 'Arlon': 'axe', 'Bastogne': 'event axe', 'Ostende': 'event axe'}
+    roads = [
+        ('E40', ['Ostende', 'Bruges', 'Gand', 'Bruxelles', 'Louvain', 'Liège']),
+        ('E19', ['Anvers', 'Malines', 'Bruxelles', 'Mons']),
+        ('E411', ['Bruxelles', 'Namur', 'Bastogne', 'Arlon']),
+        ('E42', ['Tournai', 'Mons', 'Charleroi', 'Namur', 'Liège']),
+        ('E313', ['Anvers', 'Hasselt', 'Liège']),
+        ('E17', ['Anvers', 'Gand', 'Courtrai'])]
+    road_svg = ''
+    for rn, cs in roads:
+        pts = []
+        for c in cs:
+            rx, ry = P(*b.CITIES[c])
+            pts.append('%.1f,%.1f' % (rx - x0, ry - y0))
+        road_svg += '<polyline class="road" data-types="axe" data-name="%s" data-cities="%s" points="%s"/>' % (rn, ','.join(cs), ' '.join(pts))
+        k = (len(pts) - 1) // 2 if rn != 'E40' else 1
+        ax, ay = [float(v) for v in pts[k].split(',')]
+        bx, by = [float(v) for v in pts[k + 1].split(',')]
+        mx, my = (ax + bx) / 2, (ay + by) / 2 + (-20 if rn == 'E42' else 0)
+        road_svg += '<g class="road__tag" data-types="axe" data-name="%s" transform="translate(%.1f %.1f)"><rect x="-22" y="-11" width="44" height="22" rx="11"/><text y="5" text-anchor="middle">%s</text></g>' % (rn, mx, my, rn)
     lit = ''
     pins = ''
     for c, t in types.items():
@@ -50,7 +68,8 @@ def build_map(lang, d):
             label = '<text class="pin__label" x="-12" y="4" text-anchor="end">%s</text>' % name
         else:
             label = '<text class="pin__label" x="12" y="4">%s</text>' % name
-        pins += '<g class="pin" data-types="%s" transform="translate(%.1f %.1f)"><circle class="pin__ring" r="12"/><circle class="pin__dot" r="4.6"/>%s</g>' % (t, x, y, label)
+        minor = ' pin--minor' if c in ('Hasselt', 'Louvain', 'Malines') else ''
+        pins += '<g class="pin%s" data-types="%s" data-city="%s" tabindex="0" role="button" aria-label="%s" transform="translate(%.1f %.1f)"><circle class="pin__hit" r="18"/><circle class="pin__ring" r="12"/><circle class="pin__dot" r="4.6"/>%s</g>' % (minor, t, c, name, x, y, label)
     return (
         '<svg class="map__svg" viewBox="0 0 %.0f %.0f" role="img" aria-label="%s" focusable="false">'
         '<defs>'
@@ -59,11 +78,13 @@ def build_map(lang, d):
         '<pattern id="dotsHot" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="2" fill="#FB923C"/></pattern>'
         '<radialGradient id="halo"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#fff" stop-opacity=".7"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'
         '<mask id="litmask" maskUnits="userSpaceOnUse" x="0" y="0" width="%.0f" height="%.0f">%s</mask>'
+        '<mask id="curmask" maskUnits="userSpaceOnUse" x="0" y="0" width="%.0f" height="%.0f"><circle class="cursor" cx="-200" cy="-200" r="62" fill="url(#halo)"/></mask>'
         '</defs>'
         '<rect width="%.0f" height="%.0f" fill="url(#dotsDim)" clip-path="url(#be)"/>'
-        '<g clip-path="url(#be)"><rect width="%.0f" height="%.0f" fill="url(#dotsHot)" mask="url(#litmask)"/></g>'
-        '<path class="map__edge" d="%s"/>%s</svg>'
-    ) % (W, H, d['map_aria'], path, W, H, lit, W, H, W, H, path, pins)
+        '<g clip-path="url(#be)"><rect width="%.0f" height="%.0f" fill="url(#dotsHot)" mask="url(#litmask)"/>'
+        '<rect class="cursor-dots" width="%.0f" height="%.0f" fill="url(#dotsHot)" mask="url(#curmask)"/></g>'
+        '<path class="map__edge" d="%s"/>%s%s</svg>'
+    ) % (W, H, d['map_aria'], path, W, H, lit, W, H, W, H, W, H, W, H, path, road_svg, pins)
 
 
 G = 376
@@ -126,10 +147,11 @@ def creative(i, x, y, w, h, tag, lines, under=''):
     out += '<g class="sv-panel" clip-path="url(#pc%d)"><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s"/>' % (i, x, y, w, h, bg)
     out += art(i, x + w - s * 1.08 - pad, y + s * 1.08 + pad, s)
     out += under
-    out += '<g class="sv-lines"><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="%.1f" fill="none" stroke="%s" stroke-width="1"/>' % (x + pad, chip_y, chip_w, chip_h, chip_h / 2, tc)
+    out += '<g class="sv-lines"><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="%.1f" fill="%s" stroke="%s" stroke-width="1"/>' % (x + pad, chip_y, chip_w, chip_h, chip_h / 2, bg if under else 'none', tc)
     out += '<text class="sv-tag" x="%.1f" y="%.1f" font-size="%.1f" fill="%s" letter-spacing="%.1f">%s</text>' % (x + pad + ft * .8, chip_y + chip_h / 2 + ft * .36, ft, tc, ft * .08, tag.upper())
     for k, line in enumerate(lines):
-        out += '<text class="sv-t" x="%.1f" y="%.1f" font-size="%.1f" fill="%s">%s</text>' % (x + pad, base0 + k * lh, fs, fg, line)
+        halo = ' stroke="%s" stroke-width="%.1f" stroke-linejoin="round" paint-order="stroke"' % (bg, fs * .16) if under else ''
+        out += '<text class="sv-t" x="%.1f" y="%.1f" font-size="%.1f" fill="%s"%s>%s</text>' % (x + pad, base0 + k * lh, fs, fg, halo, line)
     out += '</g><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="url(#led%d)"/></g>' % (x, y, w, h, i)
     return out
 
@@ -200,15 +222,24 @@ def scene(i, d):
                 o += people([x], '#050A14', 9, G + 22)
             x += 34
     else:
-        o += '<rect y="%d" width="640" height="%d" fill="#C5CFDD"/><path d="M0 %d H640" stroke="#fff" stroke-width="3" stroke-dasharray="26 18"/>' % (G, 400 - G, G + 14)
-        o += '<g fill="#CBD6E6"><rect x="0" y="180" width="70" height="196"/><rect x="560" y="150" width="80" height="226"/></g>'
-        o += '<rect x="130" y="36" width="380" height="14" rx="5" fill="%s"/><rect x="138" y="50" width="10" height="%d" fill="%s"/><rect x="492" y="50" width="10" height="%d" fill="%s"/>' % (ink, G - 50, ink, G - 50, ink)
-        o += '<rect x="150" y="50" width="342" height="%d" fill="#fff" fill-opacity=".45"/>' % (G - 50)
-        o += '<rect x="207" y="58" width="226" height="256" rx="8" fill="%s"/>' % ink
-        o += '<rect x="160" y="334" width="320" height="10" rx="3" fill="%s"/><rect x="176" y="344" width="8" height="%d" fill="%s"/><rect x="456" y="344" width="8" height="%d" fill="%s"/>' % (ink, G - 344, ink, G - 344, ink)
-        o += '<ellipse cx="320" cy="%d" rx="170" ry="8" fill="url(#gl4)"/>' % (G + 6)
-        o += creative(4, 215, 66, 210, 240, tag, lines)
-        o += people([84, 556], '#7C8CA6')
+        o += '<rect y="%d" width="640" height="%d" fill="#101A30"/>' % (G, 400 - G)
+        o += '<polygon points="120,0 190,0 330,%d 40,%d" fill="#FDBA74" fill-opacity=".09"/><polygon points="520,0 450,0 310,%d 600,%d" fill="#FDBA74" fill-opacity=".09"/>' % (G, G, G, G)
+        o += '<rect x="0" y="0" width="640" height="14" fill="%s"/>' % ink
+        o += '<path d="M0 34 Q160 66 320 34 T640 34" fill="none" stroke="#3A4660" stroke-width="2"/>'
+        cols = ['#C2410C', '#FDBA74', '#FFF4E6', '#FB923C']
+        for k in range(16):
+            bx = 20 + k * 40
+            by = 34 + (14 if 0 < k < 15 and k % 2 == 0 else 6)
+            o += '<polygon points="%d,%d %d,%d %d,%d" fill="%s"/>' % (bx, by - 4, bx + 16, by - 4, bx + 8, by + 14, cols[k % 4])
+        o += '<rect x="116" y="70" width="408" height="236" rx="8" fill="%s"/>' % ink
+        o += '<rect x="90" y="306" width="460" height="14" rx="3" fill="#263049"/>'
+        o += '<rect y="%d" width="640" height="22" fill="#16203A"/>' % (G - 22)
+        o += creative(4, 124, 78, 392, 220, tag, lines)
+        o += '<g fill="#FDBA74"><circle cx="60" cy="110" r="2.4"/><circle cx="590" cy="130" r="2.2"/><circle cx="40" cy="200" r="1.8"/><circle cx="604" cy="220" r="2"/></g>'
+        x = 8
+        while x < 640:
+            o += people([x], '#050A14', 10, G + 24)
+            x += 36
     return o
 
 
@@ -216,12 +247,15 @@ def slides(d):
     html = ''
     for i in range(5):
         label = d['s_label'][i]
-        alt = '%s. %s' % (label, ' '.join(d['s_lines'][i]))
+        alt = '%s. %s' % (label, d['s_alt'])
+        base = '' if d.get('_lang') == 'fr' or not d.get('_lang') else '../'
+        pri = ' fetchpriority="high"' if i == 0 else ' loading="lazy"'
         html += (
             '<div class="slide%s"%s>'
-            '<svg class="slide__svg" viewBox="0 0 640 400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="%s">%s</svg>'
+            '<img class="slide__svg" src="%sassets/img/hero-%d-1200.webp" srcset="%sassets/img/hero-%d-640.webp 640w, %sassets/img/hero-%d-1200.webp 1200w" '
+            'sizes="(max-width:1000px) 100vw, 55vw" width="1200" height="750" alt="%s" decoding="async"%s>'
             '<span class="slide__label">%s</span></div>'
-        ) % (' is-active' if i == 0 else '', '' if i == 0 else ' aria-hidden="true"', alt, scene(i, d), label)
+        ) % (' is-active' if i == 0 else '', '' if i == 0 else ' aria-hidden="true"', base, i + 1, base, i + 1, base, i + 1, alt, pri, label)
     return html
 
 
@@ -319,7 +353,7 @@ def scene_e(label):
 def blocks(lang, d):
     base = '' if lang == 'fr' else '../'
     legal_href = os.path.relpath(LEGAL_SLUG[lang], os.path.dirname(INDEX_FILES[lang]) or '.')
-    keys = ['cc', 'ville', 'pieton', 'bus', 'event']
+    keys = ['cc', 'event', 'axe']
     types_html = ''
     for n, k in enumerate(keys):
         types_html += (
@@ -330,6 +364,10 @@ def blocks(lang, d):
 
     tiles_html = ''
     for n, (cls, deco) in enumerate(TILE_DECO):
+        if cls == 'e':
+            deco = ''
+        if cls == 'e':
+            deco = ''
         tiles_html += (
             '<li class="tile tile--%s reveal"><a class="tile__link" href="#devis" data-profil="%s">%s'
             '<span class="tile__tag">%s</span><span class="tile__title">%s</span><span class="tile__desc">%s</span>'
@@ -338,6 +376,14 @@ def blocks(lang, d):
 
     A, B, C, D = format_scenes()
     scs = [A, B, C, D, scene_e(d['media12'])]
+    def photo(name, alt, w, h):
+        return ('<img class="fcard__media" src="%sassets/img/%s-900.webp" srcset="%sassets/img/%s-480.webp 480w, %sassets/img/%s-900.webp 900w" '
+                'sizes="(max-width:1000px) 100vw, 40vw" width="%d" height="%d" alt="%s" loading="lazy" decoding="async">') % (base, name, base, name, base, name, w, h, alt)
+    scs[0] = photo('interieur', d['f_alt'][0], 900, 1019)
+    scs[1] = photo('exterieur', d['f_alt'][1], 900, 1260)
+    scs[3] = photo('evenement', d['f_alt'][2], 900, 947)
+    scs[2] = photo('fixe', d['f_alt'][3], 900, 1020)
+    scs[4] = photo('duree', d['f_alt'][4], 900, 1021)
     per_attr = [None, None, None, d['per'][0], d['per'][1]]
     fm_html = ''
     for n in range(5):
@@ -349,7 +395,7 @@ def blocks(lang, d):
         ) % (scs[n], d['f_t'][n], d['fm_hint'], d['f_t'][n], d['f_p'][n], link)
 
     steps_html = ''
-    for n in range(4):
+    for n in range(len(d['st_t'])):
         steps_html += '<li class="reveal"><span class="steps__n">%d</span><h3>%s</h3><p>%s</p></li>\n' % (n + 1, d['st_t'][n], d['st_p'][n])
 
     faq_html = ''.join('<details><summary>%s</summary><p>%s</p></details>\n' % (d['q'][n], d['a'][n]) for n in range(5))
@@ -362,7 +408,7 @@ def blocks(lang, d):
         return h
     loc_opts = radios('lieu', d['o_place0'], d['loc'])
     per_opts = radios('periode', d['o_place0'], d['per'])
-    prog = ''.join('<li%s><span class="qprog__n">%d</span><span class="qprog__t">%s</span></li>' % (' aria-current="step"' if n == 0 else '', n + 1, d['qs_labels'][n]) for n in range(3))
+    prog = ''.join('<li%s><span class="qprog__n">%d</span><span class="qprog__t">%s</span></li>' % (' aria-current="step"' if n == 0 else '', n + 1, d['qs_labels'][n]) for n in range(4))
 
     sw = ''
     for L in ORDER:
@@ -375,8 +421,8 @@ def blocks(lang, d):
     return {
         'BASE': base, 'LANG': lang, 'TYPES': types_html, 'TILES': tiles_html, 'FORMATS': fm_html, 'STEPS': steps_html,
         'FAQ': faq_html, 'DOTS_NAV': dots_html, 'PROFIL_OPTS': profil_opts, 'LOC_OPTS': loc_opts, 'PER_OPTS': per_opts, 'QPROG': prog,
-        'LANGSW': sw, 'HREFLANG': hreflang, 'CANON': '%s/%s' % (SITE, SLUG[lang]), 'SLIDES': slides(d), 'MAP': build_map(lang, d),
-        'LEGAL_HREF': legal_href, 'I18N_JSON': json.dumps(dict(d['js'], cap_prefix=d['cap_prefix']), ensure_ascii=False).replace('</', '<\\/'),
+        'LANGSW': sw, 'HREFLANG': hreflang, 'CANON': '%s/%s' % (SITE, SLUG[lang]), 'SLIDES': slides(dict(d, _lang=lang)), 'MAP': build_map(lang, d),
+        'LEGAL_HREF': legal_href, 'I18N_JSON': json.dumps(dict(d['js'], cap_prefix=d['cap_prefix'], types=d['ty_t']), ensure_ascii=False).replace('</', '<\\/'),
         'INDEX_HREF': os.path.relpath(INDEX_FILES[lang], os.path.dirname(LEGAL_FILES[lang]) or '.'),
     }
 
@@ -394,7 +440,7 @@ def main():
         d = LANGS[lang]
         m = blocks(lang, d)
         flat = {k: v for k, v in d.items() if isinstance(v, str)}
-        for n in range(3):
+        for n in range(4):
             flat['qs_h_%d' % n] = d['qs_h'][n]
         flat['form_legal'] = d['form_legal'].replace('{legal_href}', m['LEGAL_HREF'])
         mapping = dict(m)
